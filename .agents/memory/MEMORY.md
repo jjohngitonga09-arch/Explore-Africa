@@ -1,0 +1,2 @@
+- [Seed runner](seed-runner.md) — tsx binary location and the correct way to run db seed scripts in this monorepo
+- [Duplicate API Server workflow](duplicate-workflow.md) — the old "API Server" workflow always fails (port 8080 clash); ignore it, the artifact one is the real server
