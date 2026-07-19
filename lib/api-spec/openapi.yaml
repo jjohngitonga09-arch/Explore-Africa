@@ -3,20 +3,34 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Africa Travel Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: tours
+    description: Tour listings
+  - name: bookings
+    description: Tour bookings
+  - name: visa
+    description: Visa services and cases
+  - name: gallery
+    description: Photo gallery
+  - name: admin
+    description: Admin operations
+  - name: countries
+    description: Countries
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +38,755 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Auth ──────────────────────────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Countries (public) ────────────────────────────────────────────────────
+  /countries/origin:
+    get:
+      operationId: listOriginCountries
+      tags: [countries]
+      summary: List origin countries (public, for register dropdown)
+      responses:
+        "200":
+          description: List of origin countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Country"
+
+  /countries/destination:
+    get:
+      operationId: listDestinationCountries
+      tags: [countries]
+      summary: List destination countries (public)
+      responses:
+        "200":
+          description: List of destination countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Country"
+
+  # ── Tours ─────────────────────────────────────────────────────────────────
+  /tours:
+    get:
+      operationId: listTours
+      tags: [tours]
+      summary: List all tours
+      parameters:
+        - name: destinationCountryId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: maxPrice
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: minDays
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: maxDays
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of tours
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TourSummary"
+
+    post:
+      operationId: createTour
+      tags: [tours]
+      summary: Create a tour (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TourInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tour"
+
+  /tours/{id}:
+    get:
+      operationId: getTour
+      tags: [tours]
+      summary: Get tour details with images and pricing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tour detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TourDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      operationId: updateTour
+      tags: [tours]
+      summary: Update a tour (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TourUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tour"
+
+    delete:
+      operationId: deleteTour
+      tags: [tours]
+      summary: Delete a tour (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /tours/{id}/images:
+    post:
+      operationId: addTourImage
+      tags: [tours]
+      summary: Add image to tour (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TourImageInput"
+      responses:
+        "201":
+          description: Image added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TourImage"
+
+  /tours/{id}/images/{imageId}:
+    delete:
+      operationId: removeTourImage
+      tags: [tours]
+      summary: Remove image from tour (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removed
+
+  /tours/{id}/pricing:
+    post:
+      operationId: setTourPricing
+      tags: [tours]
+      summary: Set country-specific pricing for a tour (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TourPricingInput"
+      responses:
+        "200":
+          description: Pricing set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TourPricing"
+
+  # ── Bookings ──────────────────────────────────────────────────────────────
+  /bookings:
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a booking (user)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/mine:
+    get:
+      operationId: getMyBookings
+      tags: [bookings]
+      summary: Get current user's bookings
+      responses:
+        "200":
+          description: User bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookingDetail"
+
+  /bookings/{id}/mark-paid:
+    post:
+      operationId: markBookingPaid
+      tags: [bookings]
+      summary: Mark booking as paid (user)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking marked paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/admin/all:
+    get:
+      operationId: getAllBookings
+      tags: [bookings]
+      summary: Get all bookings (admin)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookingDetail"
+
+  /bookings/admin/{id}:
+    patch:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingStatusUpdate"
+      responses:
+        "200":
+          description: Booking updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  # ── Visa ──────────────────────────────────────────────────────────────────
+  /visa/services:
+    get:
+      operationId: listVisaServices
+      tags: [visa]
+      summary: List available visa services (public)
+      responses:
+        "200":
+          description: Visa services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisaService"
+
+  /visa/cases:
+    post:
+      operationId: createVisaCase
+      tags: [visa]
+      summary: Create a visa case (user)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisaCaseInput"
+      responses:
+        "201":
+          description: Case created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisaCase"
+
+  /visa/cases/mine:
+    get:
+      operationId: getMyVisaCases
+      tags: [visa]
+      summary: Get current user's visa cases
+      responses:
+        "200":
+          description: User visa cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisaCaseDetail"
+
+  /visa/cases/{id}/documents:
+    post:
+      operationId: addCaseDocument
+      tags: [visa]
+      summary: Add document to visa case (user)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaseDocumentInput"
+      responses:
+        "201":
+          description: Document added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseDocument"
+
+  /visa/cases/{id}/mark-fee-paid:
+    post:
+      operationId: markFeePaid
+      tags: [visa]
+      summary: Mark visa case fee as paid (user)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Fee marked paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisaCase"
+
+  /visa/admin/services:
+    post:
+      operationId: createVisaService
+      tags: [visa]
+      summary: Create visa service (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisaServiceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisaService"
+
+  /visa/admin/services/{id}:
+    patch:
+      operationId: updateVisaService
+      tags: [visa]
+      summary: Update visa service (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisaServiceUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisaService"
+
+  /visa/admin/cases:
+    get:
+      operationId: getAllVisaCases
+      tags: [visa]
+      summary: Get all visa cases (admin)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All visa cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisaCaseDetail"
+
+  /visa/admin/cases/{id}:
+    get:
+      operationId: getVisaCaseAdmin
+      tags: [visa]
+      summary: Get single visa case (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Visa case detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisaCaseDetail"
+
+  /visa/admin/cases/{id}/status:
+    patch:
+      operationId: updateVisaCaseStatus
+      tags: [visa]
+      summary: Update visa case status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisaCaseStatusUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisaCase"
+
+  # ── Admin ─────────────────────────────────────────────────────────────────
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Dashboard KPI stats (admin)
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/countries/origin:
+    get:
+      operationId: adminListOriginCountries
+      tags: [admin]
+      summary: List origin countries (admin)
+      responses:
+        "200":
+          description: Origin countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Country"
+    post:
+      operationId: addOriginCountry
+      tags: [admin]
+      summary: Add origin country (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CountryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Country"
+
+  /admin/countries/destination:
+    get:
+      operationId: adminListDestinationCountries
+      tags: [admin]
+      summary: List destination countries (admin)
+      responses:
+        "200":
+          description: Destination countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Country"
+    post:
+      operationId: addDestinationCountry
+      tags: [admin]
+      summary: Add destination country (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CountryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Country"
+
+  /admin/countries/{id}:
+    delete:
+      operationId: deleteCountry
+      tags: [admin]
+      summary: Delete a country (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Gallery ───────────────────────────────────────────────────────────────
+  /gallery:
+    get:
+      operationId: getGallery
+      tags: [gallery]
+      summary: Public gallery images
+      responses:
+        "200":
+          description: Gallery images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GalleryImage"
+
+  /admin/gallery:
+    get:
+      operationId: getAdminGallery
+      tags: [admin]
+      summary: All gallery images (admin)
+      responses:
+        "200":
+          description: Gallery images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GalleryImage"
+    post:
+      operationId: addGalleryImage
+      tags: [admin]
+      summary: Add gallery image (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GalleryImageInput"
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryImage"
+
+  /admin/gallery/{id}:
+    delete:
+      operationId: deleteGalleryImage
+      tags: [admin]
+      summary: Delete gallery image (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +797,593 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    # ── Auth ────────────────────────────────────────────────────────────────
+    RegisterInput:
+      type: object
+      required: [email, password, fullName, nationality]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 6
+        fullName:
+          type: string
+        nationality:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    User:
+      type: object
+      required: [id, email, fullName, nationality, role, createdAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        fullName:
+          type: string
+        nationality:
+          type: string
+        role:
+          type: string
+        createdAt:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    # ── Countries ───────────────────────────────────────────────────────────
+    Country:
+      type: object
+      required: [id, name, type, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: ["string", "null"]
+        type:
+          type: string
+        createdAt:
+          type: string
+
+    CountryInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+
+    # ── Tours ───────────────────────────────────────────────────────────────
+    Tour:
+      type: object
+      required: [id, title, description, durationDays, destinationCountryId, basePrice, highlights, included, notIncluded, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        durationDays:
+          type: integer
+        destinationCountryId:
+          type: integer
+        basePrice:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: string
+        included:
+          type: array
+          items:
+            type: string
+        notIncluded:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TourSummary:
+      type: object
+      required: [id, title, description, durationDays, destinationCountryId, basePrice, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        durationDays:
+          type: integer
+        destinationCountryId:
+          type: integer
+        basePrice:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: string
+        coverImage:
+          type: ["string", "null"]
+        destinationCountry:
+          oneOf:
+            - $ref: "#/components/schemas/Country"
+            - type: "null"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TourDetail:
+      type: object
+      required: [id, title, description, durationDays, destinationCountryId, basePrice, highlights, included, notIncluded, images, pricing, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        durationDays:
+          type: integer
+        destinationCountryId:
+          type: integer
+        basePrice:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: string
+        included:
+          type: array
+          items:
+            type: string
+        notIncluded:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/TourImage"
+        pricing:
+          type: array
+          items:
+            $ref: "#/components/schemas/TourPricing"
+        destinationCountry:
+          oneOf:
+            - $ref: "#/components/schemas/Country"
+            - type: "null"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TourInput:
+      type: object
+      required: [title, description, durationDays, destinationCountryId, basePrice]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        durationDays:
+          type: integer
+        destinationCountryId:
+          type: integer
+        basePrice:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: string
+        included:
+          type: array
+          items:
+            type: string
+        notIncluded:
+          type: array
+          items:
+            type: string
+
+    TourUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        durationDays:
+          type: integer
+        destinationCountryId:
+          type: integer
+        basePrice:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: string
+        included:
+          type: array
+          items:
+            type: string
+        notIncluded:
+          type: array
+          items:
+            type: string
+
+    TourImage:
+      type: object
+      required: [id, tourId, imageUrl, sortOrder]
+      properties:
+        id:
+          type: integer
+        tourId:
+          type: integer
+        imageUrl:
+          type: string
+        caption:
+          type: ["string", "null"]
+        sortOrder:
+          type: integer
+
+    TourImageInput:
+      type: object
+      required: [imageUrl]
+      properties:
+        imageUrl:
+          type: string
+        caption:
+          type: string
+        sortOrder:
+          type: integer
+
+    TourPricing:
+      type: object
+      required: [id, tourId, originCountryId, price]
+      properties:
+        id:
+          type: integer
+        tourId:
+          type: integer
+        originCountryId:
+          type: integer
+        price:
+          type: number
+
+    TourPricingInput:
+      type: object
+      required: [originCountryId, price]
+      properties:
+        originCountryId:
+          type: integer
+        price:
+          type: number
+
+    # ── Bookings ────────────────────────────────────────────────────────────
+    Booking:
+      type: object
+      required: [id, userId, tourId, originCountryId, numberOfPeople, totalPrice, status, bookingDate]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        tourId:
+          type: integer
+        originCountryId:
+          type: integer
+        numberOfPeople:
+          type: integer
+        totalPrice:
+          type: number
+        status:
+          type: string
+        bookingDate:
+          type: string
+        paymentDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    BookingDetail:
+      type: object
+      required: [id, userId, tourId, originCountryId, numberOfPeople, totalPrice, status, bookingDate]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        tourId:
+          type: integer
+        originCountryId:
+          type: integer
+        numberOfPeople:
+          type: integer
+        totalPrice:
+          type: number
+        status:
+          type: string
+        bookingDate:
+          type: string
+        paymentDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        tour:
+          oneOf:
+            - $ref: "#/components/schemas/TourSummary"
+            - type: "null"
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        originCountry:
+          oneOf:
+            - $ref: "#/components/schemas/Country"
+            - type: "null"
+
+    BookingInput:
+      type: object
+      required: [tourId, originCountryId, numberOfPeople]
+      properties:
+        tourId:
+          type: integer
+        originCountryId:
+          type: integer
+        numberOfPeople:
+          type: integer
+        notes:
+          type: string
+
+    BookingStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    # ── Visa ────────────────────────────────────────────────────────────────
+    VisaService:
+      type: object
+      required: [id, name, description, fee, destinationCountryId, requirements, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        fee:
+          type: number
+        destinationCountryId:
+          type: integer
+        requirements:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        destinationCountry:
+          oneOf:
+            - $ref: "#/components/schemas/Country"
+            - type: "null"
+        createdAt:
+          type: string
+
+    VisaServiceInput:
+      type: object
+      required: [name, description, fee, destinationCountryId]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        fee:
+          type: number
+        destinationCountryId:
+          type: integer
+        requirements:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+
+    VisaServiceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        fee:
+          type: number
+        destinationCountryId:
+          type: integer
+        requirements:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+
+    VisaCase:
+      type: object
+      required: [id, userId, visaServiceId, status, feePaid, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        visaServiceId:
+          type: integer
+        status:
+          type: string
+        feePaid:
+          type: boolean
+        submittedAt:
+          type: ["string", "null"]
+        adminNotes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    VisaCaseDetail:
+      type: object
+      required: [id, userId, visaServiceId, status, feePaid, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        visaServiceId:
+          type: integer
+        status:
+          type: string
+        feePaid:
+          type: boolean
+        submittedAt:
+          type: ["string", "null"]
+        adminNotes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        service:
+          oneOf:
+            - $ref: "#/components/schemas/VisaService"
+            - type: "null"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaseDocument"
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+
+    VisaCaseInput:
+      type: object
+      required: [visaServiceId]
+      properties:
+        visaServiceId:
+          type: integer
+
+    VisaCaseStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        adminNotes:
+          type: string
+
+    CaseDocument:
+      type: object
+      required: [id, visaCaseId, documentType, fileUrl, uploadedAt]
+      properties:
+        id:
+          type: integer
+        visaCaseId:
+          type: integer
+        documentType:
+          type: string
+        fileUrl:
+          type: string
+        uploadedAt:
+          type: string
+
+    CaseDocumentInput:
+      type: object
+      required: [documentType, fileUrl]
+      properties:
+        documentType:
+          type: string
+        fileUrl:
+          type: string
+
+    # ── Gallery ─────────────────────────────────────────────────────────────
+    GalleryImage:
+      type: object
+      required: [id, imageUrl, sortOrder, createdAt]
+      properties:
+        id:
+          type: integer
+        imageUrl:
+          type: string
+        caption:
+          type: ["string", "null"]
+        countryId:
+          type: ["integer", "null"]
+        country:
+          oneOf:
+            - $ref: "#/components/schemas/Country"
+            - type: "null"
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+
+    GalleryImageInput:
+      type: object
+      required: [imageUrl]
+      properties:
+        imageUrl:
+          type: string
+        caption:
+          type: string
+        countryId:
+          type: integer
+        sortOrder:
+          type: integer
+
+    # ── Admin Stats ─────────────────────────────────────────────────────────
+    AdminStats:
+      type: object
+      required: [totalUsers, totalBookings, totalRevenue, pendingVisaCases, totalTours, confirmedBookings, cancelledBookings]
+      properties:
+        totalUsers:
+          type: integer
+        totalBookings:
+          type: integer
+        totalRevenue:
+          type: number
+        pendingVisaCases:
+          type: integer
+        totalTours:
+          type: integer
+        confirmedBookings:
+          type: integer
+        cancelledBookings:
+          type: integer

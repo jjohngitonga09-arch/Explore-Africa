@@ -1,0 +1,346 @@
+================================================================================
+              AFRICA TRAVEL PLATFORM – FULL ARCHITECTURE SPECIFICATION
+================================================================================
+
+1. PROJECT OVERVIEW
+--------------------
+A legitimate tourism + optional visa‑filing platform:
+
+- Users browse tours in African countries, book and pay for them.
+- Users can also request visa‑filing assistance (optional, fee‑based).
+- NO “free sponsorship”, NO “you’ve been selected” – all prices are published
+  and tied to real services.
+- Admin panel to manage tours, countries, gallery images, visa services,
+  bookings, and cases.
+
+2. TECH STACK
+--------------
+| Layer       | Technology                                          |
+|-------------|-----------------------------------------------------|
+| Backend     | Node.js + Express                                   |
+| Frontend    | React (or Vue – choose one)                         |
+| Database    | PostgreSQL                                          |
+| Auth        | JWT (JSON Web Tokens) + bcrypt                      |
+| Styling     | CSS variables (no hardcoded colors), fully responsive |
+| Hosting     | Free/low‑cost: Replit for full stack, or Render (backend) + Vercel (frontend) + Supabase (PostgreSQL) |
+| Image Handling | URLs only – admin pastes image URLs, frontend fetches and displays them |
+
+3. FOLDER STRUCTURE
+--------------------
+africa-travel-platform/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── db.js                 # PostgreSQL connection pool
+│   │   ├── models/                   # (optional) data layer
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js
+│   │   │   ├── tours.controller.js
+│   │   │   ├── bookings.controller.js
+│   │   │   ├── visa.controller.js
+│   │   │   └── admin.controller.js   # countries, gallery, stats
+│   │   ├── routes/
+│   │   │   ├── auth.routes.js
+│   │   │   ├── tours.routes.js
+│   │   │   ├── bookings.routes.js
+│   │   │   ├── visa.routes.js
+│   │   │   ├── admin.routes.js
+│   │   │   └── gallery.routes.js     # public gallery (read‑only)
+│   │   ├── middleware/
+│   │   │   ├── auth.js               # JWT verification, admin check
+│   │   │   └── validation.js         # input validation (optional)
+│   │   └── utils/
+│   │       └── helpers.js            # re‑usable functions
+│   ├── migrations/
+│   │   └── schema.sql                # full SQL to create all tables
+│   ├── .env                          # DATABASE_URL, JWT_SECRET, PORT
+│   ├── package.json
+│   └── server.js                     # entry point
+│
+├── frontend/
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/               # reusable UI pieces
+│   │   │   ├── Layout/
+│   │   │   ├── Auth/
+│   │   │   ├── Tours/
+│   │   │   ├── Bookings/
+│   │   │   ├── Visa/
+│   │   │   └── Admin/
+│   │   ├── pages/                    # top‑level views
+│   │   │   ├── Home.jsx
+│   │   │   ├── ToursList.jsx
+│   │   │   ├── TourDetail.jsx
+│   │   │   ├── BookingForm.jsx
+│   │   │   ├── MyBookings.jsx
+│   │   │   ├── VisaServices.jsx
+│   │   │   ├── VisaCaseForm.jsx
+│   │   │   ├── MyVisaCases.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── Register.jsx
+│   │   │   └── Admin/
+│   │   │       ├── Dashboard.jsx
+│   │   │       ├── ManageTours.jsx
+│   │   │       ├── ManageCountries.jsx
+│   │   │       ├── ManageGallery.jsx
+│   │   │       ├── ManageVisaServices.jsx
+│   │   │       └── ManageBookings.jsx
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx       # provide user token & role
+│   │   ├── api/
+│   │   │   └── index.js              # axios instance with interceptors
+│   │   ├── hooks/                    # custom hooks (e.g., useAuth)
+│   │   ├── styles/
+│   │   │   ├── variables.css         # all CSS custom properties (colors, spacing)
+│   │   │   └── global.css
+│   │   ├── App.jsx
+│   │   ├── index.jsx
+│   │   └── routes.jsx                # React Router configuration
+│   ├── package.json
+│   └── .env                          # REACT_APP_API_URL
+│
+├── docker-compose.yml (optional for local dev)
+└── README.md
+
+4. DATABASE SCHEMA (TABLES & COLUMNS)
+--------------------------------------
+All tables use PostgreSQL with SERIAL PRIMARY KEY.
+
+TABLE: users
+| Column          | Type          | Description                                  |
+|-----------------|---------------|----------------------------------------------|
+| id              | SERIAL PK     |                                              |
+| email           | VARCHAR(255)  | unique, used for login                       |
+| password_hash   | VARCHAR(255)  | bcrypt hash                                  |
+| full_name       | VARCHAR(100)  |                                              |
+| nationality     | VARCHAR(100)  | user’s country of origin                     |
+| role            | VARCHAR(20)   | 'user' or 'admin' (default 'user')           |
+| created_at      | TIMESTAMP     | default NOW()                                |
+
+TABLE: countries
+| Column       | Type          | Description                         |
+|--------------|---------------|-------------------------------------|
+| id           | SERIAL PK     |                                     |
+| name         | VARCHAR(100)  | e.g., "Kenya"                       |
+| code         | CHAR(2)       | ISO country code (optional)         |
+| type         | VARCHAR(20)   | 'origin' or 'destination'           |
+| created_at   | TIMESTAMP     | default NOW()                       |
+
+TABLE: tours
+| Column            | Type          | Description                             |
+|-------------------|---------------|-----------------------------------------|
+| id                | SERIAL PK     |                                         |
+| title             | VARCHAR(200)  |                                         |
+| description       | TEXT          |                                         |
+| duration_days     | INTEGER       |                                         |
+| destination_country_id | INTEGER FK → countries(id) |                         |
+| base_price        | DECIMAL(10,2) | default price                           |
+| highlights        | TEXT[]        | array of short highlight strings        |
+| included          | TEXT[]        | what’s included                         |
+| not_included      | TEXT[]        | what’s not included                     |
+| created_at        | TIMESTAMP     | default NOW()                           |
+| updated_at        | TIMESTAMP     | default NOW()                           |
+
+TABLE: tour_images
+| Column       | Type          | Description                  |
+|--------------|---------------|------------------------------|
+| id           | SERIAL PK     |                              |
+| tour_id      | INTEGER FK → tours(id) ON DELETE CASCADE |
+| image_url    | TEXT          | full URL                     |
+| caption      | VARCHAR(200)  | optional                     |
+| sort_order   | INTEGER       | for ordering in gallery      |
+
+TABLE: tour_pricing
+| Column              | Type          | Description                             |
+|---------------------|---------------|-----------------------------------------|
+| id                  | SERIAL PK     |                                         |
+| tour_id             | INTEGER FK → tours(id) ON DELETE CASCADE |
+| origin_country_id   | INTEGER FK → countries(id) WHERE type='origin' |
+| price               | DECIMAL(10,2) | specific price for that origin          |
+| UNIQUE (tour_id, origin_country_id)                              |
+
+TABLE: bookings
+| Column            | Type          | Description                                  |
+|-------------------|---------------|----------------------------------------------|
+| id                | SERIAL PK     |                                              |
+| user_id           | INTEGER FK → users(id)                      |
+| tour_id           | INTEGER FK → tours(id)                      |
+| origin_country_id | INTEGER FK → countries(id) WHERE type='origin' |
+| number_of_people  | INTEGER       |                                              |
+| total_price       | DECIMAL(10,2) | computed at booking time                     |
+| status            | VARCHAR(20)   | 'pending', 'paid', 'confirmed', 'cancelled'  |
+| booking_date      | TIMESTAMP     | default NOW()                                |
+| payment_date      | TIMESTAMP     | when status becomes 'paid'                   |
+| notes             | TEXT          | any special requests                         |
+
+TABLE: payments (optional tracking)
+| Column           | Type          | Description                     |
+|------------------|---------------|---------------------------------|
+| id               | SERIAL PK     |                                 |
+| booking_id       | INTEGER FK → bookings(id) NULL |
+| visa_case_id     | INTEGER FK → visa_cases(id) NULL |
+| amount           | DECIMAL(10,2) |                                 |
+| payment_method   | VARCHAR(50)   | 'card', 'bank', 'paypal'        |
+| status           | VARCHAR(20)   | 'pending', 'completed', 'failed'|
+| transaction_ref  | VARCHAR(100)  | external reference              |
+| created_at       | TIMESTAMP     | default NOW()                   |
+
+TABLE: visa_services
+| Column            | Type          | Description                           |
+|-------------------|---------------|---------------------------------------|
+| id                | SERIAL PK     |                                       |
+| name              | VARCHAR(200)  | e.g., "Tourist Visa to Kenya"         |
+| description       | TEXT          |                                       |
+| fee               | DECIMAL(10,2) | service fee                           |
+| destination_country_id | INTEGER FK → countries(id) WHERE type='destination' |
+| requirements      | TEXT[]        | list of required documents            |
+| is_active         | BOOLEAN       | default true                          |
+| created_at        | TIMESTAMP     | default NOW()                         |
+
+TABLE: visa_cases
+| Column              | Type          | Description                                       |
+|---------------------|---------------|---------------------------------------------------|
+| id                  | SERIAL PK     |                                                   |
+| user_id             | INTEGER FK → users(id)                           |
+| visa_service_id     | INTEGER FK → visa_services(id)                   |
+| status              | VARCHAR(20)   | 'draft','submitted','fee_paid','processing','completed','rejected' |
+| fee_paid            | BOOLEAN       | false until payment confirmed                    |
+| submitted_at        | TIMESTAMP     | when user marks as submitted                     |
+| admin_notes         | TEXT          | internal notes                                    |
+| created_at          | TIMESTAMP     | default NOW()                                     |
+
+TABLE: case_documents
+| Column           | Type          | Description                             |
+|------------------|---------------|-----------------------------------------|
+| id               | SERIAL PK     |                                         |
+| visa_case_id     | INTEGER FK → visa_cases(id) ON DELETE CASCADE |
+| document_type    | VARCHAR(50)   | e.g., "passport", "photo", "bank statement" |
+| file_url         | TEXT          | URL where the file is stored            |
+| uploaded_at      | TIMESTAMP     | default NOW()                           |
+
+TABLE: gallery_images
+| Column       | Type          | Description                             |
+|--------------|---------------|-----------------------------------------|
+| id           | SERIAL PK     |                                         |
+| image_url    | TEXT          |                                         |
+| caption      | VARCHAR(200)  |                                         |
+| country_id   | INTEGER FK → countries(id) NULL (optional) |
+| sort_order   | INTEGER       |                                         |
+| created_at   | TIMESTAMP     | default NOW()                           |
+
+5. AUTHENTICATION PAGES & FLOW
+-------------------------------
+Public Routes (not logged in):
+- /login – email + password form
+- /register – full name, email, password, nationality (dropdown from origin countries)
+- / – homepage (tours, gallery snippets)
+- /tours – list all tours (with filters)
+- /tours/:id – tour details, includes “Book Now” button that redirects to login if not authenticated
+- /visa-services – list of available visa services (links to apply, requires login)
+
+Protected User Routes (logged in):
+- /profile – view/update profile (optional)
+- /my-bookings – list user’s tour bookings with status
+- /my-visa-cases – list user’s visa applications and status
+- /book/:tourId – booking form (select dates, number of people, etc.)
+- /apply-visa/:serviceId – visa application form (fill personal details, upload documents)
+
+Admin Routes (only if role = 'admin'):
+- /admin/dashboard – KPI cards: total users, total bookings, total revenue, pending visa cases
+- /admin/tours – list, create, edit, delete tours; manage tour images (add by URL), set country‑specific pricing
+- /admin/countries – add/remove origin and destination countries
+- /admin/gallery – add/delete gallery images (by URL)
+- /admin/visa-services – create/edit visa service catalog
+- /admin/bookings – view all bookings, update status (paid/confirmed/cancelled)
+- /admin/visa-cases – view all cases, mark fee paid, update case status (processing/completed/rejected)
+
+Auth Implementation:
+- JWT stored in localStorage (or httpOnly cookies if more secure).
+- On login/register, backend returns a token and user info.
+- Frontend uses AuthContext to store token and role; API requests include Authorization: Bearer <token>.
+- Protected routes redirect to /login if not authenticated.
+- Admin routes also check user.role === 'admin'; if not, redirect to home.
+
+6. API ENDPOINTS (HIGH‑LEVEL)
+------------------------------
+| Method | Endpoint                            | Description                                  |
+|--------|-------------------------------------|----------------------------------------------|
+| POST   | /api/auth/register                  | Create new user                              |
+| POST   | /api/auth/login                     | Login, return token                          |
+| GET    | /api/auth/me                        | Get current user (protected)                 |
+| GET    | /api/tours                          | List all tours (public)                      |
+| GET    | /api/tours/:id                      | Get tour details (public)                    |
+| POST   | /api/tours                          | Create tour (admin)                          |
+| PUT    | /api/tours/:id                      | Update tour (admin)                          |
+| DELETE | /api/tours/:id                      | Delete tour (admin)                          |
+| POST   | /api/tours/:id/images               | Add image to tour (admin)                    |
+| DELETE | /api/tours/:id/images/:imageId      | Remove image (admin)                         |
+| POST   | /api/tours/:id/pricing              | Set country‑specific price (admin)           |
+| POST   | /api/bookings                       | Create booking (user)                        |
+| GET    | /api/bookings/mine                  | Get user’s bookings                          |
+| POST   | /api/bookings/:id/mark-paid         | User marks booking as paid (manual)          |
+| GET    | /api/bookings/admin/all             | All bookings (admin)                         |
+| PATCH  | /api/bookings/admin/:id             | Update booking status (admin)                |
+| GET    | /api/visa/services                  | List visa services (public)                  |
+| POST   | /api/visa/cases                     | Create visa case (user)                      |
+| GET    | /api/visa/cases/mine                | Get user’s visa cases                        |
+| POST   | /api/visa/cases/:id/documents       | Upload document URL (user)                   |
+| POST   | /api/visa/cases/:id/mark-fee-paid   | User confirms fee payment                    |
+| POST   | /api/visa/admin/services            | Create visa service (admin)                  |
+| PATCH  | /api/visa/admin/services/:id        | Update visa service (admin)                  |
+| GET    | /api/visa/admin/cases               | All visa cases (admin)                       |
+| GET    | /api/visa/admin/cases/:id           | Get case details (admin)                     |
+| PATCH  | /api/visa/admin/cases/:id/status    | Update case status (admin)                   |
+| GET    | /api/admin/stats                    | Dashboard KPI stats (admin)                  |
+| GET    | /api/admin/countries/destination    | List destination countries (admin)           |
+| POST   | /api/admin/countries/destination    | Add destination country (admin)              |
+| GET    | /api/admin/countries/origin         | List origin countries (admin)                |
+| POST   | /api/admin/countries/origin         | Add origin country (admin)                   |
+| GET    | /api/gallery                        | Public gallery images                        |
+| GET    | /api/admin/gallery                  | All gallery images (admin)                   |
+| POST   | /api/admin/gallery                  | Add gallery image (admin)                    |
+| DELETE | /api/admin/gallery/:id              | Delete gallery image (admin)                 |
+
+7. FRONTEND STYLING & RESPONSIVENESS
+-------------------------------------
+- CSS Variables (variables.css) define all colors, spacing, font sizes, and breakpoints.
+  No hardcoded colors anywhere in the codebase.
+- Mobile‑first responsive grid (CSS Grid or Flexbox) for tour cards, KPI cards, etc.
+- KPI cards on admin dashboard: sized consistently, not too large (e.g., ~200px wide)
+  with numbers and icons.
+- Gallery page uses a responsive masonry‑like layout (or simple grid) that adapts to
+  screen size (phones, tablets, PCs).
+- All images are loaded from URLs stored in the database; frontend uses <img> tags
+  with src from the API response.
+
+8. HOSTING & DEPLOYMENT (FREE / LOW‑COST)
+------------------------------------------
+Since initial users will be limited, these free options work well:
+
+- Replit – host both backend and frontend in a single workspace. Use a separate
+  PostgreSQL service (Supabase or Neon.tech) for the database.
+- Render.com – free tier for backend (spin‑down after inactivity) + PostgreSQL
+  add‑on (free, limited storage).
+- Vercel / Netlify – free for React frontend hosting.
+- Supabase / Neon.tech – free tier PostgreSQL (500 MB to 1 GB) with connection
+  pooling.
+
+Use environment variables for all configuration (DATABASE_URL, JWT_SECRET, PORT,
+REACT_APP_API_URL).
+
+9. NEXT STEPS FOR REPLIT
+-------------------------
+1. Create a new Replit workspace (Node.js template).
+2. Copy the folder structure above and create all directories/files.
+3. Paste the SQL schema (Section 4) into migrations/schema.sql and run it via
+   psql or a simple migration script.
+4. Write the backend code following the controller/route pattern.
+5. Write the frontend React code following the pages/components structure.
+6. Use npm scripts to start both parts (or use a monorepo setup with concurrently).
+7. Deploy using Replit’s built‑in hosting, or export to GitHub and connect to
+   Render/Vercel/Supabase.
+
+================================================================================
+                              END OF SPECIFICATION
+================================================================================

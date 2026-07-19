@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Africa Travel Platform"
+version = "1.0.0"
+id = "artifacts/africa-travel"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22892
+
+[services.development]
+run = "pnpm --filter @workspace/africa-travel run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/africa-travel", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/africa-travel/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22892"
+BASE_PATH = "/"
