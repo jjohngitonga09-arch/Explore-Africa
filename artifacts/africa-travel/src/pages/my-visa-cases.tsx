@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useGetMyVisaCases, useAddCaseDocument, useMarkFeePaid, getGetMyVisaCasesQueryKey } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { FileText, Link as LinkIcon, AlertCircle, Clock, CheckCircle2, Upload, CreditCard } from "lucide-react";
+import { FileText, Link as LinkIcon, AlertCircle, Clock, CheckCircle2, Upload, CreditCard, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -23,32 +23,33 @@ export default function MyVisaCases() {
   const [activeCaseId, setActiveCaseId] = useState<number | null>(null);
 
   const getStatusColor = (status: string) => {
-    switch(status.toLowerCase()) {
-      case 'approved': return 'bg-green-100 text-green-800 hover:bg-green-100';
-      case 'in_progress': return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
-      case 'pending_documents': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
-      case 'rejected': return 'bg-red-100 text-red-800 hover:bg-red-100';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-100';
+    switch (status.toLowerCase()) {
+      case "approved": return "bg-green-100 text-green-800 hover:bg-green-100";
+      case "in_progress": return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+      case "fee_paid": return "bg-teal-100 text-teal-800 hover:bg-teal-100";
+      case "pending_documents": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+      case "rejected": return "bg-red-100 text-red-800 hover:bg-red-100";
+      default: return "bg-gray-100 text-gray-800 hover:bg-gray-100";
     }
   };
 
   const getStatusIcon = (status: string) => {
-    switch(status.toLowerCase()) {
-      case 'approved': return <CheckCircle2 className="w-5 h-5 text-green-600" />;
-      case 'pending_documents': return <AlertCircle className="w-5 h-5 text-yellow-600" />;
-      case 'rejected': return <AlertCircle className="w-5 h-5 text-red-600" />;
+    switch (status.toLowerCase()) {
+      case "approved": return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+      case "pending_documents": return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+      case "rejected": return <AlertCircle className="w-5 h-5 text-red-600" />;
       default: return <Clock className="w-5 h-5 text-blue-600" />;
     }
   };
 
   const handlePayFee = (caseId: number) => {
-    if (!confirm("Confirm fee payment for this visa case?")) return;
+    if (!confirm("Confirm processing fee payment for this visa case?")) return;
     setPaying(caseId);
     markFeePaid.mutate(
       { id: caseId },
       {
         onSuccess: () => {
-          toast({ title: "Fee paid!", description: "Your visa case is now marked as fee paid." });
+          toast({ title: "Fee paid!", description: "Your visa application is now marked as fee paid." });
           queryClient.invalidateQueries({ queryKey: getGetMyVisaCasesQueryKey() });
         },
         onError: () => {
@@ -61,20 +62,17 @@ export default function MyVisaCases() {
 
   const handleAddDocument = (caseId: number) => {
     if (!docType || !docUrl) return;
-    
     addDocument.mutate(
       { id: caseId, data: { documentType: docType, fileUrl: docUrl } },
       {
         onSuccess: () => {
           toast({ title: "Document added successfully" });
-          setDocType("");
-          setDocUrl("");
-          setActiveCaseId(null);
+          setDocType(""); setDocUrl(""); setActiveCaseId(null);
           queryClient.invalidateQueries({ queryKey: getGetMyVisaCasesQueryKey() });
         },
         onError: () => {
           toast({ title: "Failed to add document", variant: "destructive" });
-        }
+        },
       }
     );
   };
@@ -84,14 +82,12 @@ export default function MyVisaCases() {
       <div className="container mx-auto px-4 md:px-6 max-w-4xl">
         <div className="mb-10">
           <h1 className="text-4xl font-serif mb-2">My Visa Applications</h1>
-          <p className="text-muted-foreground">Track the status of your visa cases and manage your documents.</p>
+          <p className="text-muted-foreground">Track your visa cases, upload documents, and make payments.</p>
         </div>
 
         {isLoading ? (
           <div className="space-y-6">
-            {[1, 2].map(i => (
-              <div key={i} className="h-64 bg-muted animate-pulse border border-border" />
-            ))}
+            {[1, 2].map(i => <div key={i} className="h-64 bg-muted animate-pulse border border-border" />)}
           </div>
         ) : !cases || cases.length === 0 ? (
           <Card className="rounded-none border-dashed border-border/60 bg-background text-center py-20">
@@ -107,37 +103,52 @@ export default function MyVisaCases() {
           </Card>
         ) : (
           <div className="space-y-8">
-            {cases.map(visaCase => (
+            {(cases as any[]).map(visaCase => (
               <Card key={visaCase.id} className="rounded-none border-border bg-background shadow-sm overflow-hidden">
+                {/* Header */}
                 <div className="bg-muted/30 px-6 py-4 border-b border-border flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     {getStatusIcon(visaCase.status)}
                     <div>
                       <h3 className="font-serif text-xl">{visaCase.service?.name || `Case #${visaCase.id}`}</h3>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Submitted: {visaCase.submittedAt ? format(new Date(visaCase.submittedAt), 'MMM d, yyyy') : format(new Date(visaCase.createdAt), 'MMM d, yyyy')}
+                        {visaCase.submittedAt
+                          ? `Submitted ${format(new Date(visaCase.submittedAt), "MMM d, yyyy")}`
+                          : `Opened ${format(new Date(visaCase.createdAt), "MMM d, yyyy")}`}
                       </p>
                     </div>
                   </div>
                   <Badge variant="outline" className={`rounded-none uppercase tracking-widest text-xs px-3 py-1 ${getStatusColor(visaCase.status)}`}>
-                    {visaCase.status.replace('_', ' ')}
+                    {visaCase.status.replace(/_/g, " ")}
                   </Badge>
                 </div>
-                
-                <CardContent className="p-6">
+
+                <CardContent className="p-6 space-y-6">
+                  {/* Admin notes */}
                   {visaCase.adminNotes && (
-                    <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-sm">
-                      <strong className="font-medium uppercase text-xs tracking-wider block mb-1">Message from Embassy/Agent:</strong>
+                    <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-sm">
+                      <strong className="font-medium uppercase text-xs tracking-wider block mb-1">Message from Agent:</strong>
                       {visaCase.adminNotes}
                     </div>
                   )}
 
+                  {/* Payment info from admin */}
+                  {visaCase.paymentInfo && !visaCase.feePaid && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 text-sm">
+                      <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
+                        <Info className="w-4 h-4" /> Payment Instructions from Our Team
+                      </div>
+                      <p className="text-blue-700 whitespace-pre-line">{visaCase.paymentInfo}</p>
+                    </div>
+                  )}
+
+                  {/* Documents + Upload */}
                   <div className="grid md:grid-cols-2 gap-8">
                     <div>
                       <h4 className="font-medium uppercase tracking-wider text-xs text-muted-foreground mb-4 border-b pb-2">Uploaded Documents</h4>
                       {visaCase.documents && visaCase.documents.length > 0 ? (
                         <ul className="space-y-3">
-                          {visaCase.documents.map(doc => (
+                          {visaCase.documents.map((doc: any) => (
                             <li key={doc.id} className="flex items-start text-sm">
                               <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 shrink-0 mt-0.5" />
                               <div>
@@ -159,63 +170,41 @@ export default function MyVisaCases() {
                       {activeCaseId === visaCase.id ? (
                         <div className="space-y-4">
                           <div>
-                            <Label className="text-xs uppercase">Document Name/Type</Label>
-                            <Input 
-                              placeholder="e.g. Passport Copy" 
-                              className="rounded-none h-8 text-sm mt-1" 
-                              value={docType}
-                              onChange={(e) => setDocType(e.target.value)}
-                            />
+                            <Label className="text-xs uppercase">Document Type</Label>
+                            <Input placeholder="e.g. Passport Copy, Bank Statement" className="rounded-none h-8 text-sm mt-1" value={docType} onChange={e => setDocType(e.target.value)} />
                           </div>
                           <div>
                             <Label className="text-xs uppercase">File URL (Cloud Storage Link)</Label>
-                            <Input 
-                              placeholder="https://..." 
-                              className="rounded-none h-8 text-sm mt-1"
-                              value={docUrl}
-                              onChange={(e) => setDocUrl(e.target.value)}
-                            />
+                            <Input placeholder="https://drive.google.com/…" className="rounded-none h-8 text-sm mt-1" value={docUrl} onChange={e => setDocUrl(e.target.value)} />
                           </div>
                           <div className="flex gap-2 pt-2">
-                            <Button size="sm" className="rounded-none w-full" onClick={() => handleAddDocument(visaCase.id)} disabled={!docType || !docUrl || addDocument.isPending}>
-                              Upload
-                            </Button>
-                            <Button size="sm" variant="outline" className="rounded-none w-full" onClick={() => setActiveCaseId(null)}>
-                              Cancel
-                            </Button>
+                            <Button size="sm" className="rounded-none w-full" onClick={() => handleAddDocument(visaCase.id)} disabled={!docType || !docUrl || addDocument.isPending}>Upload</Button>
+                            <Button size="sm" variant="outline" className="rounded-none w-full" onClick={() => setActiveCaseId(null)}>Cancel</Button>
                           </div>
                         </div>
                       ) : (
-                        <Button 
-                          variant="outline" 
-                          className="w-full rounded-none border-dashed bg-background hover:bg-muted"
-                          onClick={() => setActiveCaseId(visaCase.id)}
-                        >
+                        <Button variant="outline" className="w-full rounded-none border-dashed bg-background hover:bg-muted" onClick={() => setActiveCaseId(visaCase.id)}>
                           <Upload className="w-4 h-4 mr-2" /> Upload New File
                         </Button>
                       )}
                     </div>
                   </div>
 
-                  {/* Pay Fee */}
-                  {!visaCase.feePaid && visaCase.status !== 'rejected' && visaCase.service && (
-                    <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
+                  {/* Fee payment */}
+                  {!visaCase.feePaid && visaCase.status !== "rejected" && visaCase.service && (
+                    <div className="pt-6 border-t border-border flex items-center justify-between">
                       <div>
                         <p className="font-medium text-sm">Processing Fee</p>
-                        <p className="text-2xl font-serif text-primary">${visaCase.service.fee}</p>
+                        <p className="text-2xl font-serif text-primary mt-1">${visaCase.service.fee}</p>
                       </div>
-                      <Button
-                        className="rounded-none gap-2"
-                        disabled={paying === visaCase.id}
-                        onClick={() => handlePayFee(visaCase.id)}
-                      >
+                      <Button className="rounded-none gap-2" disabled={paying === visaCase.id} onClick={() => handlePayFee(visaCase.id)}>
                         <CreditCard className="w-4 h-4" />
-                        {paying === visaCase.id ? "Processing..." : "Pay Fee Now"}
+                        {paying === visaCase.id ? "Processing…" : "Pay Fee Now"}
                       </Button>
                     </div>
                   )}
                   {visaCase.feePaid && (
-                    <div className="mt-6 pt-6 border-t border-border flex items-center gap-2 text-green-600 text-sm">
+                    <div className="pt-6 border-t border-border flex items-center gap-2 text-green-600 text-sm">
                       <CheckCircle2 className="w-4 h-4" /> Fee paid — your application is being processed.
                     </div>
                   )}

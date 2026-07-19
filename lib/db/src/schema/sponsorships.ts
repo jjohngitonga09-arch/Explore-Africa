@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, varchar, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, varchar, text, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -14,6 +14,8 @@ export const sponsorshipsTable = pgTable("sponsorships", {
   status: varchar("status", { length: 20 }).notNull().default("pending"),
   adminNotes: text("admin_notes"),
   airportInstructions: text("airport_instructions"),
+  // Admin sets this fee amount when accepting — user sees it on their dashboard
+  sponsorshipFee: decimal("sponsorship_fee", { precision: 10, scale: 2 }),
   feePaid: boolean("fee_paid").notNull().default(false),
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

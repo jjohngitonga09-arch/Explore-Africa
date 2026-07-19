@@ -22,6 +22,17 @@ export const bookingsTable = pgTable("bookings", {
   bookingDate: timestamp("booking_date", { withTimezone: true }).notNull().defaultNow(),
   paymentDate: timestamp("payment_date", { withTimezone: true }),
   notes: text("notes"),
+  // Immigration / traveler personal information
+  passportNumber: varchar("passport_number", { length: 50 }),
+  dateOfBirth: varchar("date_of_birth", { length: 20 }),
+  phone: varchar("phone", { length: 30 }),
+  address: text("address"),
+  gender: varchar("gender", { length: 20 }),
+  occupation: varchar("occupation", { length: 100 }),
+  purposeOfTravel: text("purpose_of_travel"),
+  maritalStatus: varchar("marital_status", { length: 20 }),
+  emergencyContact: varchar("emergency_contact", { length: 100 }),
+  emergencyPhone: varchar("emergency_phone", { length: 30 }),
 });
 
 export const insertBookingSchema = createInsertSchema(bookingsTable).omit({ id: true, bookingDate: true });

@@ -42,6 +42,7 @@ function serializeCase(c: typeof visaCasesTable.$inferSelect) {
     feePaid: c.feePaid,
     submittedAt: c.submittedAt?.toISOString() ?? null,
     adminNotes: c.adminNotes ?? null,
+    paymentInfo: c.paymentInfo ?? null,
     createdAt: c.createdAt.toISOString(),
   };
 }
@@ -279,6 +280,7 @@ router.patch("/visa/admin/cases/:id/status", requireAuth, requireAdmin, async (r
 
   const updateData: Partial<typeof visaCasesTable.$inferInsert> = { status: parsed.data.status };
   if (parsed.data.adminNotes != null) updateData.adminNotes = parsed.data.adminNotes;
+  if (parsed.data.paymentInfo != null) updateData.paymentInfo = parsed.data.paymentInfo;
   if (parsed.data.status === "submitted") updateData.submittedAt = new Date();
 
   const [updated] = await db.update(visaCasesTable).set(updateData).where(eq(visaCasesTable.id, params.data.id)).returning();

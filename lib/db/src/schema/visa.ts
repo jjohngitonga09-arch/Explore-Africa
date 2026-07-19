@@ -29,6 +29,8 @@ export const visaCasesTable = pgTable("visa_cases", {
   feePaid: boolean("fee_paid").notNull().default(false),
   submittedAt: timestamp("submitted_at", { withTimezone: true }),
   adminNotes: text("admin_notes"),
+  // Admin edits this payment info — shown on user's dashboard so they know how to pay
+  paymentInfo: text("payment_info"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

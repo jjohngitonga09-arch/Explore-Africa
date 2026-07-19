@@ -33,6 +33,17 @@ function serializeBooking(b: typeof bookingsTable.$inferSelect) {
     bookingDate: b.bookingDate.toISOString(),
     paymentDate: b.paymentDate?.toISOString() ?? null,
     notes: b.notes ?? null,
+    // Immigration fields
+    passportNumber: b.passportNumber ?? null,
+    dateOfBirth: b.dateOfBirth ?? null,
+    phone: b.phone ?? null,
+    address: b.address ?? null,
+    gender: b.gender ?? null,
+    occupation: b.occupation ?? null,
+    purposeOfTravel: b.purposeOfTravel ?? null,
+    maritalStatus: b.maritalStatus ?? null,
+    emergencyContact: b.emergencyContact ?? null,
+    emergencyPhone: b.emergencyPhone ?? null,
   };
 }
 
@@ -136,7 +147,11 @@ router.post("/bookings", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { tourId, originCountryId, numberOfPeople, notes } = parsed.data;
+  const {
+    tourId, originCountryId, numberOfPeople, notes,
+    passportNumber, dateOfBirth, phone, address, gender,
+    occupation, purposeOfTravel, maritalStatus, emergencyContact, emergencyPhone,
+  } = parsed.data;
 
   const [tour] = await db.select().from(toursTable).where(eq(toursTable.id, tourId));
   if (!tour) {
@@ -163,6 +178,16 @@ router.post("/bookings", requireAuth, async (req, res): Promise<void> => {
       totalPrice: String(totalPrice),
       status: "pending",
       notes: notes ?? null,
+      passportNumber: passportNumber ?? null,
+      dateOfBirth: dateOfBirth ?? null,
+      phone: phone ?? null,
+      address: address ?? null,
+      gender: gender ?? null,
+      occupation: occupation ?? null,
+      purposeOfTravel: purposeOfTravel ?? null,
+      maritalStatus: maritalStatus ?? null,
+      emergencyContact: emergencyContact ?? null,
+      emergencyPhone: emergencyPhone ?? null,
     })
     .returning();
 

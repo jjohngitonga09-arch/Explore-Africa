@@ -18,6 +18,7 @@ function serializeSponsorship(s: typeof sponsorshipsTable.$inferSelect) {
     status: s.status,
     adminNotes: s.adminNotes ?? null,
     airportInstructions: s.airportInstructions ?? null,
+    sponsorshipFee: s.sponsorshipFee ? parseFloat(s.sponsorshipFee) : null,
     feePaid: s.feePaid,
     acceptedAt: s.acceptedAt?.toISOString() ?? null,
     createdAt: s.createdAt.toISOString(),
@@ -87,7 +88,7 @@ router.get("/admin/sponsorships", requireAuth, requireAdmin, async (_req, res): 
 // PATCH /admin/sponsorships/:id
 router.patch("/admin/sponsorships/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const id = parseInt(req.params.id);
-  const { status, adminNotes, airportInstructions } = req.body;
+  const { status, adminNotes, airportInstructions, sponsorshipFee } = req.body;
   if (!status) {
     res.status(400).json({ error: "status is required" });
     return;
@@ -96,6 +97,9 @@ router.patch("/admin/sponsorships/:id", requireAuth, requireAdmin, async (req, r
   const updateData: Partial<typeof sponsorshipsTable.$inferInsert> = { status };
   if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
   if (airportInstructions !== undefined) updateData.airportInstructions = airportInstructions;
+  if (sponsorshipFee !== undefined && sponsorshipFee !== null && sponsorshipFee !== "") {
+    updateData.sponsorshipFee = String(sponsorshipFee);
+  }
   if (status === "accepted") updateData.acceptedAt = new Date();
 
   const [updated] = await db

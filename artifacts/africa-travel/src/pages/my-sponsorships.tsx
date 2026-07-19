@@ -3,9 +3,10 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { Star, Clock, CheckCircle2, XCircle, Plane, CreditCard } from "lucide-react";
+import { Star, Clock, CheckCircle2, XCircle, Plane, CreditCard, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface Sponsorship {
@@ -18,6 +19,7 @@ interface Sponsorship {
   status: string;
   adminNotes: string | null;
   airportInstructions: string | null;
+  sponsorshipFee: number | null;
   feePaid: boolean;
   acceptedAt: string | null;
   createdAt: string;
@@ -42,6 +44,7 @@ export default function MySponsorships() {
   useEffect(() => { if (user) load(); }, [user]);
 
   const handlePay = async (id: number) => {
+    if (!confirm("Confirm fee payment to secure your sponsorship spot?")) return;
     setPaying(id);
     try {
       const token = localStorage.getItem("africa_travel_token");
@@ -50,7 +53,7 @@ export default function MySponsorships() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error((await res.json()).error);
-      toast({ title: "Payment confirmed!", description: "Your travel package will be prepared." });
+      toast({ title: "Payment confirmed!", description: "Your travel package will be prepared shortly." });
       load();
     } catch (err: any) {
       toast({ title: "Payment failed", description: err.message, variant: "destructive" });
@@ -80,7 +83,7 @@ export default function MySponsorships() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">{[1,2].map(i => <div key={i} className="h-40 bg-muted animate-pulse border border-border" />)}</div>
+          <div className="space-y-4">{[1, 2].map(i => <div key={i} className="h-48 bg-muted animate-pulse border border-border" />)}</div>
         ) : items.length === 0 ? (
           <Card className="rounded-none border-dashed text-center py-20">
             <CardContent>
@@ -97,9 +100,12 @@ export default function MySponsorships() {
               return (
                 <Card key={s.id} className="rounded-none border-border bg-background">
                   <CardContent className="p-6">
+                    {/* Header */}
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Applied {format(new Date(s.createdAt), "MMM d, yyyy")}</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                          Applied {format(new Date(s.createdAt), "MMM d, yyyy")}
+                        </p>
                         <h3 className="font-serif text-xl">{s.fullName}</h3>
                         <p className="text-sm text-muted-foreground">{s.nationality}</p>
                       </div>
@@ -110,42 +116,72 @@ export default function MySponsorships() {
 
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{s.purpose}</p>
 
+                    {/* Accepted state */}
                     {s.status === "accepted" && (
-                      <div className="space-y-4">
+                      <div className="space-y-4 mt-2">
+                        <Separator />
+
+                        <div className="bg-green-50 border border-green-200 p-4">
+                          <p className="text-green-800 font-semibold text-sm mb-1 flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4" /> Congratulations! Your application has been accepted.
+                          </p>
+                          {s.acceptedAt && (
+                            <p className="text-xs text-green-700">Accepted on {format(new Date(s.acceptedAt), "MMMM d, yyyy")}</p>
+                          )}
+                        </div>
+
+                        {/* Airport Instructions */}
                         {s.airportInstructions && (
-                          <div className="bg-green-50 border border-green-200 p-4 rounded-none">
-                            <div className="flex items-center gap-2 text-green-800 font-medium mb-2">
+                          <div className="bg-blue-50 border border-blue-200 p-4">
+                            <div className="flex items-center gap-2 text-blue-800 font-medium mb-2 text-sm">
                               <Plane className="w-4 h-4" /> Airport & Travel Instructions
                             </div>
-                            <p className="text-sm text-green-700 whitespace-pre-line">{s.airportInstructions}</p>
+                            <p className="text-sm text-blue-700 whitespace-pre-line">{s.airportInstructions}</p>
                           </div>
                         )}
+
+                        {/* Payment section */}
                         {!s.feePaid ? (
-                          <div className="bg-primary/5 border border-primary/20 p-4 flex items-center justify-between">
-                            <div>
-                              <p className="font-medium text-sm">Processing Fee Required</p>
-                              <p className="text-xs text-muted-foreground">Complete payment to confirm your travel spot.</p>
+                          <div className="bg-primary/5 border border-primary/20 p-5">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold text-base">Processing Fee Required</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">Pay to confirm your travel spot and receive your full travel package.</p>
+                                {s.sponsorshipFee != null ? (
+                                  <p className="text-3xl font-serif text-primary mt-2">
+                                    ${s.sponsorshipFee.toFixed(2)}
+                                  </p>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 mt-2 text-amber-700 text-sm">
+                                    <AlertCircle className="w-4 h-4" />
+                                    Fee amount being finalised — check back shortly.
+                                  </div>
+                                )}
+                              </div>
+                              {s.sponsorshipFee != null && (
+                                <Button
+                                  className="rounded-none gap-2"
+                                  disabled={paying === s.id}
+                                  onClick={() => handlePay(s.id)}
+                                >
+                                  <CreditCard className="w-4 h-4" />
+                                  {paying === s.id ? "Processing…" : "Pay Fee"}
+                                </Button>
+                              )}
                             </div>
-                            <Button
-                              className="rounded-none gap-2"
-                              disabled={paying === s.id}
-                              onClick={() => handlePay(s.id)}
-                            >
-                              <CreditCard className="w-4 h-4" />
-                              {paying === s.id ? "Processing..." : "Pay Fee"}
-                            </Button>
                           </div>
                         ) : (
-                          <div className="bg-green-50 border border-green-200 p-3 flex items-center gap-2 text-green-700 text-sm">
+                          <div className="bg-green-50 border border-green-200 p-4 flex items-center gap-2 text-green-700 text-sm">
                             <CheckCircle2 className="w-4 h-4" /> Fee paid — your travel package is being prepared.
                           </div>
                         )}
                       </div>
                     )}
 
+                    {/* Admin notes */}
                     {s.adminNotes && (
                       <div className="mt-4 pt-4 border-t border-border">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Team Note</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Message from Our Team</p>
                         <p className="text-sm">{s.adminNotes}</p>
                       </div>
                     )}
