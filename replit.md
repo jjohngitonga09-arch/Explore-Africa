@@ -1,6 +1,6 @@
-# [Project name]
+# Africa Travel Platform
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A full-stack travel platform for booking African country tours, filing visa applications, and managing sponsorship programs.
 
 ## Run & Operate
 
