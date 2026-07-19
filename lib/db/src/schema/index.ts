@@ -5,3 +5,4 @@ export * from "./bookings";
 export * from "./visa";
 export * from "./gallery";
 export * from "./email-otps";
+export * from "./sponsorships";

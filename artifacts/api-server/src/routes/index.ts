@@ -8,6 +8,7 @@ import bookingsRouter from "./bookings";
 import visaRouter from "./visa";
 import adminRouter from "./admin";
 import galleryRouter from "./gallery";
+import sponsorshipsRouter from "./sponsorships";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(bookingsRouter);
 router.use(visaRouter);
 router.use(adminRouter);
 router.use(galleryRouter);
+router.use(sponsorshipsRouter);
 
 export default router;

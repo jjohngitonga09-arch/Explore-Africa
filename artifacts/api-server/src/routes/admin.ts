@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { getIO } from "../lib/socket";
 import { eq, count, sql } from "drizzle-orm";
 import { db, usersTable, bookingsTable, visaCasesTable, toursTable, countriesTable, galleryImagesTable } from "@workspace/db";
 import {
@@ -141,6 +142,7 @@ router.post("/admin/gallery", requireAuth, requireAdmin, async (req, res): Promi
       sortOrder: parsed.data.sortOrder ?? 0,
     })
     .returning();
+  try { getIO().emit("gallery:updated"); } catch {}
   res.status(201).json(serializeGalleryImage(image, null));
 });
 
@@ -157,6 +159,7 @@ router.delete("/admin/gallery/:id", requireAuth, requireAdmin, async (req, res):
     res.status(404).json({ error: "Image not found" });
     return;
   }
+  try { getIO().emit("gallery:updated"); } catch {}
   res.sendStatus(204);
 });
 

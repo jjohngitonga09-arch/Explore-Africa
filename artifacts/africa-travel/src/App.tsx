@@ -30,6 +30,12 @@ import AdminGallery from '@/pages/admin/gallery';
 import AdminVisaServices from '@/pages/admin/visa-services';
 import AdminBookings from '@/pages/admin/bookings';
 import AdminVisaCases from '@/pages/admin/visa-cases';
+import AdminSponsorships from '@/pages/admin/sponsorships';
+
+// New User Pages
+import Sponsorships from '@/pages/sponsorships';
+import MySponsorships from '@/pages/my-sponsorships';
+import Profile from '@/pages/profile';
 
 const queryClient = new QueryClient();
 
@@ -83,6 +89,11 @@ function AppRouter() {
         <ProtectedRoute path="/admin/visa-services" component={AdminVisaServices} requireAdmin />
         <ProtectedRoute path="/admin/bookings" component={AdminBookings} requireAdmin />
         <ProtectedRoute path="/admin/visa-cases" component={AdminVisaCases} requireAdmin />
+        <ProtectedRoute path="/admin/sponsorships" component={AdminSponsorships} requireAdmin />
+
+        <Route path="/sponsorships" component={Sponsorships} />
+        <ProtectedRoute path="/my-sponsorships" component={MySponsorships} />
+        <ProtectedRoute path="/profile" component={Profile} />
 
         <Route component={NotFound} />
       </Switch>

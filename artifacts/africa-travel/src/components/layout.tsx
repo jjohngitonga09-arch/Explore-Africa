@@ -12,6 +12,8 @@ import {
   MapPin,
   Images,
   Globe,
+  Star,
+  User,
 } from "lucide-react";
 
 interface NavLinkProps {
@@ -73,9 +75,10 @@ export function Layout({ children }: { children: ReactNode }) {
             <p className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
               Explore
             </p>
-            <SidebarLink href="/tours"         icon={<MapPin  className="w-4 h-4" />} label="Destinations"  onClick={close} />
-            <SidebarLink href="/gallery"        icon={<Images  className="w-4 h-4" />} label="Gallery"       onClick={close} />
-            <SidebarLink href="/visa-services"  icon={<Globe   className="w-4 h-4" />} label="Visa Services" onClick={close} />
+            <SidebarLink href="/tours"          icon={<MapPin  className="w-4 h-4" />} label="Destinations"   onClick={close} />
+            <SidebarLink href="/gallery"        icon={<Images  className="w-4 h-4" />} label="Gallery"        onClick={close} />
+            <SidebarLink href="/visa-services"  icon={<Globe   className="w-4 h-4" />} label="Visa Services"  onClick={close} />
+            <SidebarLink href="/sponsorships"   icon={<Star    className="w-4 h-4" />} label="Free Sponsorship" onClick={close} />
 
             <div className="my-3 border-t border-border/40" />
 
@@ -85,11 +88,14 @@ export function Layout({ children }: { children: ReactNode }) {
                   My Account
                 </p>
                 {isAdmin ? (
-                  <SidebarLink href="/admin/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Admin Dashboard" onClick={close} />
+                  <SidebarLink href="/admin/dashboard"     icon={<LayoutDashboard className="w-4 h-4" />} label="Admin Dashboard"   onClick={close} />
+                  <SidebarLink href="/admin/sponsorships" icon={<Star           className="w-4 h-4" />} label="Sponsorships"       onClick={close} />
                 ) : (
                   <>
-                    <SidebarLink href="/my-bookings"   icon={<Briefcase className="w-4 h-4" />} label="My Bookings" onClick={close} />
-                    <SidebarLink href="/my-visa-cases" icon={<FileText   className="w-4 h-4" />} label="My Visas"    onClick={close} />
+                    <SidebarLink href="/my-bookings"      icon={<Briefcase className="w-4 h-4" />} label="My Bookings"    onClick={close} />
+                    <SidebarLink href="/my-visa-cases"    icon={<FileText   className="w-4 h-4" />} label="My Visas"       onClick={close} />
+                    <SidebarLink href="/my-sponsorships"  icon={<Star       className="w-4 h-4" />} label="My Sponsorships" onClick={close} />
+                    <SidebarLink href="/profile"          icon={<User       className="w-4 h-4" />} label="My Profile"     onClick={close} />
                   </>
                 )}
                 <div className="mt-auto pt-4 px-3 pb-3">

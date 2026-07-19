@@ -1,18 +1,44 @@
-import { useGetMyBookings } from "@workspace/api-client-react";
+import { useState } from "react";
+import { useGetMyBookings, useMarkBookingPaid, getGetMyBookingsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Calendar, MapPin, Users, CreditCard, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MyBookings() {
   const { data: bookings, isLoading } = useGetMyBookings();
+  const markPaid = useMarkBookingPaid();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [paying, setPaying] = useState<number | null>(null);
+
+  const handlePay = (bookingId: number) => {
+    if (!confirm("Confirm payment for this booking?")) return;
+    setPaying(bookingId);
+    markPaid.mutate(
+      { id: bookingId },
+      {
+        onSuccess: () => {
+          toast({ title: "Payment confirmed!", description: "Your booking is now marked as paid." });
+          queryClient.invalidateQueries({ queryKey: getGetMyBookingsQueryKey() });
+        },
+        onError: (err: any) => {
+          toast({ title: "Payment failed", description: err.message, variant: "destructive" });
+        },
+        onSettled: () => setPaying(null),
+      }
+    );
+  };
 
   const getStatusColor = (status: string) => {
     switch(status.toLowerCase()) {
       case 'confirmed': return 'bg-green-100 text-green-800 hover:bg-green-100 border-green-200';
       case 'pending': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200';
+      case 'paid': return 'bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200';
       case 'cancelled': return 'bg-red-100 text-red-800 hover:bg-red-100 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -43,7 +69,7 @@ export default function MyBookings() {
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                 You haven't booked any tours with us yet. Discover the wonders of Africa and start planning your next adventure.
               </p>
-              <Button asChild rounded-none>
+              <Button asChild className="rounded-none">
                 <Link href="/tours">Browse Destinations</Link>
               </Button>
             </CardContent>
@@ -99,14 +125,24 @@ export default function MyBookings() {
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <CreditCard className="w-4 h-4 mr-2 text-foreground/40" />
-                        <span>{booking.paymentDate ? 'Paid' : 'Payment Pending'}</span>
+                        <span>{booking.paymentDate ? `Paid ${format(new Date(booking.paymentDate), 'MMM d')}` : 'Payment Pending'}</span>
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-border flex justify-end">
-                      <Button variant="outline" className="rounded-none shrink-0" asChild>
-                        <Link href={`/tours/${booking.tourId}`}>View Tour Details</Link>
+                    <div className="pt-4 border-t border-border flex justify-between items-center gap-3">
+                      <Button variant="outline" className="rounded-none" asChild>
+                        <Link href={`/tours/${booking.tourId}`}>View Tour</Link>
                       </Button>
+                      {!booking.paymentDate && booking.status !== 'cancelled' && (
+                        <Button
+                          className="rounded-none gap-2"
+                          disabled={paying === booking.id}
+                          onClick={() => handlePay(booking.id)}
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          {paying === booking.id ? "Processing..." : "Pay Now"}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

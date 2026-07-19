@@ -1,20 +1,22 @@
 import { useState } from "react";
-import { useGetMyVisaCases, useAddCaseDocument, getGetMyVisaCasesQueryKey } from "@workspace/api-client-react";
+import { useGetMyVisaCases, useAddCaseDocument, useMarkFeePaid, getGetMyVisaCasesQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { FileText, Link as LinkIcon, AlertCircle, Clock, CheckCircle2, Upload } from "lucide-react";
+import { FileText, Link as LinkIcon, AlertCircle, Clock, CheckCircle2, Upload, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function MyVisaCases() {
   const { data: cases, isLoading } = useGetMyVisaCases();
   const addDocument = useAddCaseDocument();
+  const markFeePaid = useMarkFeePaid();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [paying, setPaying] = useState<number | null>(null);
 
   const [docType, setDocType] = useState("");
   const [docUrl, setDocUrl] = useState("");
@@ -37,6 +39,24 @@ export default function MyVisaCases() {
       case 'rejected': return <AlertCircle className="w-5 h-5 text-red-600" />;
       default: return <Clock className="w-5 h-5 text-blue-600" />;
     }
+  };
+
+  const handlePayFee = (caseId: number) => {
+    if (!confirm("Confirm fee payment for this visa case?")) return;
+    setPaying(caseId);
+    markFeePaid.mutate(
+      { id: caseId },
+      {
+        onSuccess: () => {
+          toast({ title: "Fee paid!", description: "Your visa case is now marked as fee paid." });
+          queryClient.invalidateQueries({ queryKey: getGetMyVisaCasesQueryKey() });
+        },
+        onError: () => {
+          toast({ title: "Payment failed", variant: "destructive" });
+        },
+        onSettled: () => setPaying(null),
+      }
+    );
   };
 
   const handleAddDocument = (caseId: number) => {
@@ -176,6 +196,29 @@ export default function MyVisaCases() {
                       )}
                     </div>
                   </div>
+
+                  {/* Pay Fee */}
+                  {!visaCase.feePaid && visaCase.status !== 'rejected' && visaCase.service && (
+                    <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">Processing Fee</p>
+                        <p className="text-2xl font-serif text-primary">${visaCase.service.fee}</p>
+                      </div>
+                      <Button
+                        className="rounded-none gap-2"
+                        disabled={paying === visaCase.id}
+                        onClick={() => handlePayFee(visaCase.id)}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        {paying === visaCase.id ? "Processing..." : "Pay Fee Now"}
+                      </Button>
+                    </div>
+                  )}
+                  {visaCase.feePaid && (
+                    <div className="mt-6 pt-6 border-t border-border flex items-center gap-2 text-green-600 text-sm">
+                      <CheckCircle2 className="w-4 h-4" /> Fee paid — your application is being processed.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

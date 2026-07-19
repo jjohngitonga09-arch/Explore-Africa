@@ -14,6 +14,12 @@ function serializeUser(user: typeof usersTable.$inferSelect) {
     fullName: user.fullName,
     nationality: user.nationality,
     role: user.role,
+    phone: user.phone ?? null,
+    passportNumber: user.passportNumber ?? null,
+    dateOfBirth: user.dateOfBirth ?? null,
+    address: user.address ?? null,
+    emergencyContact: user.emergencyContact ?? null,
+    emergencyPhone: user.emergencyPhone ?? null,
     createdAt: user.createdAt.toISOString(),
   };
 }
@@ -82,6 +88,31 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 
 router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.userId));
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+  res.json(serializeUser(user));
+});
+
+router.patch("/auth/profile", requireAuth, async (req, res): Promise<void> => {
+  const { fullName, nationality, phone, passportNumber, dateOfBirth, address, emergencyContact, emergencyPhone } = req.body;
+  const update: Partial<typeof usersTable.$inferInsert> = {};
+  if (fullName !== undefined) update.fullName = fullName;
+  if (nationality !== undefined) update.nationality = nationality;
+  if (phone !== undefined) update.phone = phone;
+  if (passportNumber !== undefined) update.passportNumber = passportNumber;
+  if (dateOfBirth !== undefined) update.dateOfBirth = dateOfBirth;
+  if (address !== undefined) update.address = address;
+  if (emergencyContact !== undefined) update.emergencyContact = emergencyContact;
+  if (emergencyPhone !== undefined) update.emergencyPhone = emergencyPhone;
+
+  const [user] = await db
+    .update(usersTable)
+    .set(update)
+    .where(eq(usersTable.id, req.user!.userId))
+    .returning();
+
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;

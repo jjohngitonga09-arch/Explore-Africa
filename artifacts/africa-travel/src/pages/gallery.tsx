@@ -1,7 +1,29 @@
-import { useGetGallery } from "@workspace/api-client-react";
+import { useEffect } from "react";
+import { useGetGallery, getGetGalleryQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { io } from "socket.io-client";
+
+let socket: ReturnType<typeof io> | null = null;
+
+function getSocket() {
+  if (!socket) {
+    socket = io({ path: "/api/socket.io", transports: ["websocket", "polling"] });
+  }
+  return socket;
+}
 
 export default function Gallery() {
   const { data: images, isLoading } = useGetGallery();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const s = getSocket();
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: getGetGalleryQueryKey() });
+    };
+    s.on("gallery:updated", handler);
+    return () => { s.off("gallery:updated", handler); };
+  }, [queryClient]);
 
   return (
     <div className="pb-24 pt-10 min-h-screen bg-background">
