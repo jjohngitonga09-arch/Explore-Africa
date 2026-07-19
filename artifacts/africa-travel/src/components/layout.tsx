@@ -88,8 +88,10 @@ export function Layout({ children }: { children: ReactNode }) {
                   My Account
                 </p>
                 {isAdmin ? (
-                  <SidebarLink href="/admin/dashboard"     icon={<LayoutDashboard className="w-4 h-4" />} label="Admin Dashboard"   onClick={close} />
-                  <SidebarLink href="/admin/sponsorships" icon={<Star           className="w-4 h-4" />} label="Sponsorships"       onClick={close} />
+                  <>
+                    <SidebarLink href="/admin/dashboard"     icon={<LayoutDashboard className="w-4 h-4" />} label="Admin Dashboard"   onClick={close} />
+                    <SidebarLink href="/admin/sponsorships" icon={<Star           className="w-4 h-4" />} label="Sponsorships"       onClick={close} />
+                  </>
                 ) : (
                   <>
                     <SidebarLink href="/my-bookings"      icon={<Briefcase className="w-4 h-4" />} label="My Bookings"    onClick={close} />
