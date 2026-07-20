@@ -4,12 +4,13 @@ A full-stack travel platform for booking African country tours, filing visa appl
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (workflow: `artifacts/api-server: API Server`, port 8080)
+- `pnpm --filter @workspace/africa-travel run dev` — run the frontend (workflow: `artifacts/africa-travel: web`)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `DATABASE_URL` is runtime-managed by Replit — no manual setup needed
 
 ## Stack
 
