@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+﻿import { Router, type IRouter } from "express";
 import { getIO } from "../lib/socket";
 import { eq, count, sql } from "drizzle-orm";
 import { db, usersTable, bookingsTable, visaCasesTable, toursTable, countriesTable, galleryImagesTable } from "@workspace/db";
@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { serializeCountry } from "./countries";
+import cloudinary from "../lib/cloudinary";
 
 const router: IRouter = Router();
 
@@ -95,6 +96,26 @@ router.post("/admin/countries/destination", requireAuth, requireAdmin, async (re
   res.status(201).json(serializeCountry(country));
 });
 
+// PATCH /admin/countries/:id
+router.patch("/admin/countries/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const { name, code } = req.body;
+  const update: Partial<typeof countriesTable.$inferInsert> = {};
+  if (name !== undefined) update.name = name;
+  if (code !== undefined) update.code = code;
+
+  const [country] = await db.update(countriesTable).set(update).where(eq(countriesTable.id, id)).returning();
+  if (!country) {
+    res.status(404).json({ error: "Country not found" });
+    return;
+  }
+  res.json(serializeCountry(country));
+});
+
 // DELETE /admin/countries/:id
 router.delete("/admin/countries/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const params = DeleteCountryParams.safeParse(req.params);
@@ -144,6 +165,34 @@ router.post("/admin/gallery", requireAuth, requireAdmin, async (req, res): Promi
     .returning();
   try { getIO().emit("gallery:updated"); } catch {}
   res.status(201).json(serializeGalleryImage(image, null));
+});
+
+// POST /admin/gallery/upload-from-url
+router.post("/admin/gallery/upload-from-url", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const { imageUrl, caption, countryId, sortOrder } = req.body;
+  if (!imageUrl || typeof imageUrl !== "string") {
+    res.status(400).json({ error: "imageUrl is required" });
+    return;
+  }
+  try {
+    const result = await cloudinary.uploader.upload(imageUrl, {
+      folder: "explore-africa/gallery",
+    });
+    const [image] = await db
+      .insert(galleryImagesTable)
+      .values({
+        imageUrl: result.secure_url,
+        caption: caption ?? null,
+        countryId: countryId ?? null,
+        sortOrder: sortOrder ?? 0,
+      })
+      .returning();
+    try { getIO().emit("gallery:updated"); } catch {}
+    res.status(201).json(serializeGalleryImage(image, null));
+  } catch (err) {
+    console.error("Cloudinary upload error:", err);
+    res.status(500).json({ error: "Failed to upload image. Check the URL is a direct image link and Cloudinary credentials are correct." });
+  }
 });
 
 // DELETE /admin/gallery/:id

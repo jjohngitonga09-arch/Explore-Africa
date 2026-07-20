@@ -1,4 +1,5 @@
-import { useState } from "react";
+﻿import { useState } from "react";
+import { customFetch } from "@workspace/api-client-react";
 import { 
   useAdminListOriginCountries, useAdminListDestinationCountries, 
   useAddOriginCountry, useAddDestinationCountry, useDeleteCountry,
@@ -11,7 +12,68 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Globe, PlaneTakeoff, PlaneLanding, Trash2, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Globe, PlaneTakeoff, PlaneLanding, Trash2, Plus, Pencil } from "lucide-react";
+
+interface CountryRow {
+  id: number;
+  name: string;
+  code: string | null;
+}
+
+function EditCountryDialog({ country, onSaved }: { country: CountryRow; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(country.name);
+  const [code, setCode] = useState(country.code ?? "");
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await customFetch(`/admin/countries/${country.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name, code }),
+      });
+      toast({ title: "Country updated" });
+      setOpen(false);
+      onSaved();
+    } catch (err: any) {
+      toast({ title: "Update failed", description: err?.message ?? "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <Pencil className="w-4 h-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="rounded-none sm:max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-xl">Edit Country</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSave} className="space-y-4 pt-4">
+          <div>
+            <label className="text-xs uppercase tracking-wider text-muted-foreground mb-1 block">Name</label>
+            <Input required className="rounded-none" value={name} onChange={e => setName(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-wider text-muted-foreground mb-1 block">Code</label>
+            <Input className="rounded-none" value={code} onChange={e => setCode(e.target.value)} />
+          </div>
+          <div className="pt-2 flex justify-end">
+            <Button type="submit" className="rounded-none px-8" disabled={isSaving}>Save Changes</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function AdminCountries() {
   const { data: originCountries, isLoading: originsLoading } = useAdminListOriginCountries();
@@ -28,6 +90,13 @@ export default function AdminCountries() {
   const [newOriginCode, setNewOriginCode] = useState("");
   const [newDestName, setNewDestName] = useState("");
   const [newDestCode, setNewDestCode] = useState("");
+
+  const refreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: getAdminListOriginCountriesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getAdminListDestinationCountriesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getListOriginCountriesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getListDestinationCountriesQueryKey() });
+  };
 
   const handleAddOrigin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +161,6 @@ export default function AdminCountries() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Origin Countries */}
         <Card className="rounded-none shadow-sm border-border">
           <CardHeader className="bg-muted/20 border-b border-border/50">
             <CardTitle className="font-serif text-xl flex items-center">
@@ -113,7 +181,7 @@ export default function AdminCountries() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead className="w-24">Code</TableHead>
-                  <TableHead className="text-right w-16"></TableHead>
+                  <TableHead className="text-right w-24"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -123,7 +191,8 @@ export default function AdminCountries() {
                   <TableRow key={country.id}>
                     <TableCell className="font-medium">{country.name}</TableCell>
                     <TableCell className="font-mono text-muted-foreground">{country.code}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-1">
+                      <EditCountryDialog country={country} onSaved={refreshAll} />
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(country.id, 'origin')}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -135,7 +204,6 @@ export default function AdminCountries() {
           </CardContent>
         </Card>
 
-        {/* Destination Countries */}
         <Card className="rounded-none shadow-sm border-border">
           <CardHeader className="bg-muted/20 border-b border-border/50">
             <CardTitle className="font-serif text-xl flex items-center">
@@ -156,7 +224,7 @@ export default function AdminCountries() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead className="w-24">Code</TableHead>
-                  <TableHead className="text-right w-16"></TableHead>
+                  <TableHead className="text-right w-24"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -166,7 +234,8 @@ export default function AdminCountries() {
                   <TableRow key={country.id}>
                     <TableCell className="font-medium">{country.name}</TableCell>
                     <TableCell className="font-mono text-muted-foreground">{country.code}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-1">
+                      <EditCountryDialog country={country} onSaved={refreshAll} />
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(country.id, 'destination')}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
