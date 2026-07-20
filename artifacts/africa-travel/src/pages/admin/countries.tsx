@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { customFetch } from "@workspace/api-client-react";
 import { 
   useAdminListOriginCountries, useAdminListDestinationCountries, 
@@ -18,7 +18,7 @@ import { Globe, PlaneTakeoff, PlaneLanding, Trash2, Plus, Pencil } from "lucide-
 interface CountryRow {
   id: number;
   name: string;
-  code: string | null;
+  code?: string | null;
 }
 
 function EditCountryDialog({ country, onSaved }: { country: CountryRow; onSaved: () => void }) {

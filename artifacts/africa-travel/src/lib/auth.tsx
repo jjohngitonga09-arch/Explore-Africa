@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, useGetMe } from '@workspace/api-client-react';
+import { User, useGetMe, getGetMeQueryKey } from '@workspace/api-client-react';
 import { setAuthTokenGetter } from '@workspace/api-client-react';
 
 setAuthTokenGetter(() => localStorage.getItem('africa_travel_token'));
@@ -21,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data: me, isLoading, isError } = useGetMe({
     query: {
+      queryKey: getGetMeQueryKey(),
       retry: false,
       refetchOnWindowFocus: false,
     }

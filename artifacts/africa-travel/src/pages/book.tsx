@@ -10,36 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Clock, User, Plane, ShieldCheck, Phone } from "lucide-react";
+import { MapPin, Clock, Plane, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
-const MARITAL_STATUSES = ["Single", "Married", "Divorced", "Widowed"];
-const PURPOSES = [
-  "Tourism / Holiday",
-  "Business",
-  "Transit",
-  "Study",
-  "Medical Treatment",
-  "Family Visit",
-  "Other",
-];
 
 const bookingSchema = z.object({
   originCountryId: z.string().min(1, "Please select your origin country"),
   numberOfPeople: z.coerce.number().min(1).max(20),
   notes: z.string().optional(),
-  // Immigration info
-  passportNumber: z.string().min(1, "Passport number is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  gender: z.string().min(1, "Gender is required"),
-  address: z.string().min(1, "Address is required"),
-  occupation: z.string().min(1, "Occupation is required"),
-  purposeOfTravel: z.string().min(1, "Purpose of travel is required"),
-  maritalStatus: z.string().min(1, "Marital status is required"),
-  emergencyContact: z.string().min(1, "Emergency contact name is required"),
-  emergencyPhone: z.string().min(1, "Emergency contact phone is required"),
 });
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
@@ -61,9 +38,6 @@ export default function BookTour() {
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       originCountryId: "", numberOfPeople: 1, notes: "",
-      passportNumber: "", dateOfBirth: "", phone: "", gender: "",
-      address: "", occupation: "", purposeOfTravel: "", maritalStatus: "",
-      emergencyContact: "", emergencyPhone: "",
     },
   });
 
@@ -82,16 +56,6 @@ export default function BookTour() {
           originCountryId: parseInt(data.originCountryId),
           numberOfPeople: data.numberOfPeople,
           notes: data.notes,
-          passportNumber: data.passportNumber,
-          dateOfBirth: data.dateOfBirth,
-          phone: data.phone,
-          gender: data.gender,
-          address: data.address,
-          occupation: data.occupation,
-          purposeOfTravel: data.purposeOfTravel,
-          maritalStatus: data.maritalStatus,
-          emergencyContact: data.emergencyContact,
-          emergencyPhone: data.emergencyPhone,
         },
       },
       {
@@ -123,7 +87,7 @@ export default function BookTour() {
             ← Back to Tour Details
           </Link>
           <h1 className="text-4xl font-serif mb-2">Reserve Your Journey</h1>
-          <p className="text-muted-foreground">Complete the immigration form to secure your spot for <strong>{tour.title}</strong></p>
+          <p className="text-muted-foreground">Tell us your trip details to secure your spot for <strong>{tour.title}</strong></p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
@@ -175,115 +139,6 @@ export default function BookTour() {
                   </CardContent>
                 </Card>
 
-                {/* Section: Personal Information */}
-                <Card className="rounded-none border-border shadow-sm">
-                  <CardHeader className="border-b border-border/50 bg-muted/20">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-primary" />
-                      <CardTitle className="font-serif text-xl">Personal Information</CardTitle>
-                    </div>
-                    <CardDescription>As it appears on your passport — required for immigration processing.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-5">
-                    <div className="grid sm:grid-cols-2 gap-5">
-                      <FormField control={form.control} name="passportNumber" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Passport Number *</FormLabel>
-                          <FormControl><Input placeholder="e.g. A12345678" className="rounded-none" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Date of Birth *</FormLabel>
-                          <FormControl><Input type="date" className="rounded-none" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="gender" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Gender *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger className="rounded-none"><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                            <SelectContent>{GENDERS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="maritalStatus" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Marital Status *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger className="rounded-none"><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                            <SelectContent>{MARITAL_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="phone" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Phone Number *</FormLabel>
-                          <FormControl><Input placeholder="+1 555 000 0000" className="rounded-none" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="occupation" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Occupation *</FormLabel>
-                          <FormControl><Input placeholder="e.g. Engineer, Teacher" className="rounded-none" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                    </div>
-                    <FormField control={form.control} name="address" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="uppercase tracking-wider text-xs">Residential Address *</FormLabel>
-                        <FormControl><Textarea placeholder="Full address including city, state/province, country" className="rounded-none min-h-[80px]" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="purposeOfTravel" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="uppercase tracking-wider text-xs">Purpose of Travel *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl><SelectTrigger className="rounded-none"><SelectValue placeholder="Select purpose" /></SelectTrigger></FormControl>
-                          <SelectContent>{PURPOSES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  </CardContent>
-                </Card>
-
-                {/* Section: Emergency Contact */}
-                <Card className="rounded-none border-border shadow-sm">
-                  <CardHeader className="border-b border-border/50 bg-muted/20">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-primary" />
-                      <CardTitle className="font-serif text-xl">Emergency Contact</CardTitle>
-                    </div>
-                    <CardDescription>Person to contact in case of emergency during your trip.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="grid sm:grid-cols-2 gap-5">
-                      <FormField control={form.control} name="emergencyContact" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Contact Name *</FormLabel>
-                          <FormControl><Input placeholder="Full name" className="rounded-none" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="emergencyPhone" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="uppercase tracking-wider text-xs">Contact Phone *</FormLabel>
-                          <FormControl><Input placeholder="+1 555 000 0000" className="rounded-none" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Section: Additional Notes */}
                 <Card className="rounded-none border-border shadow-sm">
                   <CardHeader className="border-b border-border/50 bg-muted/20">
@@ -318,7 +173,7 @@ export default function BookTour() {
           <div className="md:col-span-1">
             <Card className="rounded-none border-border shadow-sm sticky top-24">
               <div className="aspect-[4/3] relative">
-                <img src={tour.coverImage || "/safari-lodge.jpg"} alt={tour.title} className="w-full h-full object-cover" />
+                <img src={tour.images?.[0]?.imageUrl || "/safari-lodge.jpg"} alt={tour.title} className="w-full h-full object-cover" />
               </div>
               <CardContent className="p-6">
                 <h3 className="font-serif text-xl mb-4">{tour.title}</h3>

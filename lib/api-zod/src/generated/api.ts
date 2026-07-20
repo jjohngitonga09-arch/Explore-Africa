@@ -309,18 +309,7 @@ export const CreateBookingBody = zod.object({
   "tourId": zod.number(),
   "originCountryId": zod.number(),
   "numberOfPeople": zod.number(),
-  "notes": zod.string().optional(),
-  // Immigration / traveler fields
-  "passportNumber": zod.string().optional(),
-  "dateOfBirth": zod.string().optional(),
-  "phone": zod.string().optional(),
-  "address": zod.string().optional(),
-  "gender": zod.string().optional(),
-  "occupation": zod.string().optional(),
-  "purposeOfTravel": zod.string().optional(),
-  "maritalStatus": zod.string().optional(),
-  "emergencyContact": zod.string().optional(),
-  "emergencyPhone": zod.string().optional()
+  "notes": zod.string().optional()
 })
 
 export const CreateBookingResponse = zod.object({
@@ -799,8 +788,7 @@ export const UpdateVisaCaseStatusParams = zod.object({
 
 export const UpdateVisaCaseStatusBody = zod.object({
   "status": zod.string(),
-  "adminNotes": zod.string().optional(),
-  "paymentInfo": zod.string().optional()
+  "adminNotes": zod.string().optional()
 })
 
 export const UpdateVisaCaseStatusResponse = zod.object({

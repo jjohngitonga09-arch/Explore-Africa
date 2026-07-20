@@ -53,7 +53,7 @@ export default function TourDetail() {
       {/* Hero Image */}
       <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden bg-black">
         <img 
-          src={tour.images?.[0]?.imageUrl || tour.coverImage || "/cape-town.jpg"} 
+          src={tour.images?.[0]?.imageUrl || "/cape-town.jpg"} 
           alt={tour.title}
           className="w-full h-full object-cover opacity-70"
         />
@@ -105,7 +105,7 @@ export default function TourDetail() {
                 <ul className="space-y-3">
                   {tour.included?.map((item, idx) => (
                     <li key={idx} className="text-muted-foreground text-sm flex items-start">
-                      <span className="text-muted-foreground mr-2">•</span> {item}
+                      <span className="text-muted-foreground mr-2">Ã¢â‚¬Â¢</span> {item}
                     </li>
                   ))}
                   {(!tour.included || tour.included.length === 0) && (
@@ -118,7 +118,7 @@ export default function TourDetail() {
                 <ul className="space-y-3">
                   {tour.notIncluded?.map((item, idx) => (
                     <li key={idx} className="text-muted-foreground text-sm flex items-start">
-                      <span className="text-muted-foreground mr-2">•</span> {item}
+                      <span className="text-muted-foreground mr-2">Ã¢â‚¬Â¢</span> {item}
                     </li>
                   ))}
                   {(!tour.notIncluded || tour.notIncluded.length === 0) && (

@@ -11,14 +11,4 @@ export interface BookingInput {
   originCountryId: number;
   numberOfPeople: number;
   notes?: string;
-  passportNumber?: string;
-  dateOfBirth?: string;
-  phone?: string;
-  address?: string;
-  gender?: string;
-  occupation?: string;
-  purposeOfTravel?: string;
-  maritalStatus?: string;
-  emergencyContact?: string;
-  emergencyPhone?: string;
 }
