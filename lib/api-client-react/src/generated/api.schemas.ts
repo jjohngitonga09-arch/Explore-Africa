@@ -187,6 +187,16 @@ export interface BookingInput {
   originCountryId: number;
   numberOfPeople: number;
   notes?: string;
+  passportNumber?: string;
+  dateOfBirth?: string;
+  phone?: string;
+  address?: string;
+  gender?: string;
+  occupation?: string;
+  purposeOfTravel?: string;
+  maritalStatus?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
 }
 
 export interface BookingStatusUpdate {
@@ -267,6 +277,7 @@ export interface VisaCaseInput {
 export interface VisaCaseStatusUpdate {
   status: string;
   adminNotes?: string;
+  paymentInfo?: string;
 }
 
 export interface CaseDocumentInput {
@@ -283,6 +294,10 @@ export interface GalleryImage {
   countryId?: number | null;
   country?: Country | null;
   sortOrder: number;
+  isVisible: boolean;
+  isHeaderImage: boolean;
+  /** @nullable */
+  headerOrder?: number | null;
   createdAt: string;
 }
 
@@ -291,6 +306,32 @@ export interface GalleryImageInput {
   caption?: string;
   countryId?: number;
   sortOrder?: number;
+}
+
+export interface GalleryImageVisibilityInput {
+  isVisible: boolean;
+}
+
+export interface BulkGalleryImageVisibilityInput {
+  /** Image ids to update. Omit to apply to all images. */
+  ids?: number[];
+  isVisible: boolean;
+}
+
+export interface GalleryImageHeaderInput {
+  isHeaderImage: boolean;
+  headerOrder?: number | null;
+}
+
+export interface SiteSettings {
+  id: number;
+  headerCarouselIntervalMs: number;
+  updatedAt: string;
+}
+
+export interface UpdateSiteSettingsInput {
+  /** @minimum 500 */
+  headerCarouselIntervalMs: number;
 }
 
 export interface AdminStats {
@@ -316,5 +357,9 @@ status?: string;
 
 export type GetAllVisaCasesParams = {
 status?: string;
+};
+
+export type BulkSetGalleryImageVisibility200 = {
+  updated: number;
 };
 

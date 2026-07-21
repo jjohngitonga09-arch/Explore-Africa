@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, varchar, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { countriesTable } from "./countries";
@@ -9,6 +9,9 @@ export const galleryImagesTable = pgTable("gallery_images", {
   caption: varchar("caption", { length: 200 }),
   countryId: integer("country_id").references(() => countriesTable.id),
   sortOrder: integer("sort_order").notNull().default(0),
+  isVisible: boolean("is_visible").notNull().default(true),
+  isHeaderImage: boolean("is_header_image").notNull().default(false),
+  headerOrder: integer("header_order"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

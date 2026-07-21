@@ -1,16 +1,21 @@
-﻿import { Router, type IRouter } from "express";
+import { Router, type IRouter } from "express";
 import { getIO } from "../lib/socket";
-import { eq, count, sql } from "drizzle-orm";
-import { db, usersTable, bookingsTable, visaCasesTable, toursTable, countriesTable, galleryImagesTable } from "@workspace/db";
+import { eq, count, sql, inArray } from "drizzle-orm";
+import { db, usersTable, bookingsTable, visaCasesTable, toursTable, countriesTable, galleryImagesTable, siteSettingsTable } from "@workspace/db";
 import {
   AddOriginCountryBody,
   AddDestinationCountryBody,
   DeleteCountryParams,
   AddGalleryImageBody,
+  SetGalleryImageVisibilityBody,
+  BulkSetGalleryImageVisibilityBody,
+  SetGalleryImageHeaderBody,
+  UpdateSiteSettingsBody,
 } from "@workspace/api-zod";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { serializeCountry } from "./countries";
 import cloudinary from "../lib/cloudinary";
+import { getOrCreateSettings, serializeSiteSettings } from "./settings";
 
 const router: IRouter = Router();
 
@@ -22,6 +27,9 @@ function serializeGalleryImage(g: typeof galleryImagesTable.$inferSelect, countr
     countryId: g.countryId ?? null,
     country: country ? serializeCountry(country) : null,
     sortOrder: g.sortOrder,
+    isVisible: g.isVisible,
+    isHeaderImage: g.isHeaderImage,
+    headerOrder: g.headerOrder ?? null,
     createdAt: g.createdAt.toISOString(),
   };
 }
@@ -98,7 +106,7 @@ router.post("/admin/countries/destination", requireAuth, requireAdmin, async (re
 
 // PATCH /admin/countries/:id
 router.patch("/admin/countries/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid id" });
     return;
@@ -212,5 +220,90 @@ router.delete("/admin/gallery/:id", requireAuth, requireAdmin, async (req, res):
   res.sendStatus(204);
 });
 
+
+// PATCH /admin/gallery/:id/visibility
+router.patch("/admin/gallery/:id/visibility", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const parsed = SetGalleryImageVisibilityBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const [image] = await db
+    .update(galleryImagesTable)
+    .set({ isVisible: parsed.data.isVisible })
+    .where(eq(galleryImagesTable.id, id))
+    .returning();
+  if (!image) {
+    res.status(404).json({ error: "Image not found" });
+    return;
+  }
+  try { getIO().emit("gallery:updated"); } catch {}
+  res.json(serializeGalleryImage(image, null));
+});
+
+// POST /admin/gallery/bulk-visibility
+router.post("/admin/gallery/bulk-visibility", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const parsed = BulkSetGalleryImageVisibilityBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const { ids, isVisible } = parsed.data;
+  const result = ids && ids.length > 0
+    ? await db.update(galleryImagesTable).set({ isVisible }).where(inArray(galleryImagesTable.id, ids)).returning()
+    : await db.update(galleryImagesTable).set({ isVisible }).returning();
+  try { getIO().emit("gallery:updated"); } catch {}
+  res.json({ updated: result.length });
+});
+
+
+// PATCH /admin/gallery/:id/header
+router.patch("/admin/gallery/:id/header", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const parsed = SetGalleryImageHeaderBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const [image] = await db
+    .update(galleryImagesTable)
+    .set({ isHeaderImage: parsed.data.isHeaderImage, headerOrder: parsed.data.headerOrder ?? null })
+    .where(eq(galleryImagesTable.id, id))
+    .returning();
+  if (!image) {
+    res.status(404).json({ error: "Image not found" });
+    return;
+  }
+  try { getIO().emit("gallery:updated"); } catch {}
+  res.json(serializeGalleryImage(image, null));
+});
+
 export { serializeGalleryImage };
+// PATCH /admin/settings
+router.patch("/admin/settings", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const parsed = UpdateSiteSettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const existing = await getOrCreateSettings();
+  const [updated] = await db
+    .update(siteSettingsTable)
+    .set({ headerCarouselIntervalMs: parsed.data.headerCarouselIntervalMs, updatedAt: new Date() })
+    .where(eq(siteSettingsTable.id, existing.id))
+    .returning();
+  res.json(serializeSiteSettings(updated));
+});
+
 export default router;

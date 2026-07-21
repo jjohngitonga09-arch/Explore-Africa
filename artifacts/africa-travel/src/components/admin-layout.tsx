@@ -1,4 +1,4 @@
-﻿import { Link, useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { type ReactNode, useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
@@ -11,6 +11,7 @@ import {
   Briefcase,
   FileText,
   Star,
+  Settings,
 } from "lucide-react";
 
 interface AdminLinkProps {
@@ -46,6 +47,7 @@ const ADMIN_LINKS = [
   { href: "/admin/sponsorships", icon: <Star className="w-4 h-4" />, label: "Sponsorships" },
   { href: "/admin/gallery", icon: <Images className="w-4 h-4" />, label: "Gallery" },
   { href: "/admin/urls", icon: <Link2 className="w-4 h-4" />, label: "URLs" },
+  { href: "/admin/settings", icon: <Settings className="w-4 h-4" />, label: "Settings" },
 ];
 
 export function AdminLayout({ children }: { children: ReactNode }) {

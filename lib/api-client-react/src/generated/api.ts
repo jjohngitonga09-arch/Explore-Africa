@@ -26,19 +26,24 @@ import type {
   BookingDetail,
   BookingInput,
   BookingStatusUpdate,
+  BulkGalleryImageVisibilityInput,
+  BulkSetGalleryImageVisibility200,
   CaseDocument,
   CaseDocumentInput,
   Country,
   CountryInput,
   ErrorResponse,
   GalleryImage,
+  GalleryImageHeaderInput,
   GalleryImageInput,
+  GalleryImageVisibilityInput,
   GetAllBookingsParams,
   GetAllVisaCasesParams,
   HealthStatus,
   ListToursParams,
   LoginInput,
   RegisterInput,
+  SiteSettings,
   Tour,
   TourDetail,
   TourImage,
@@ -48,6 +53,7 @@ import type {
   TourPricingInput,
   TourSummary,
   TourUpdate,
+  UpdateSiteSettingsInput,
   User,
   VisaCase,
   VisaCaseDetail,
@@ -2690,6 +2696,160 @@ export const useDeleteCountry = <TError = ErrorType<unknown>,
       return useMutation(getDeleteCountryMutationOptions(options));
     }
 
+export const getGetSiteSettingsUrl = () => {
+
+
+
+
+  return `/api/settings`
+}
+
+/**
+ * @summary Public site settings (e.g. carousel pace)
+ */
+export const getSiteSettings = async ( options?: RequestInit): Promise<SiteSettings> => {
+
+  return customFetch<SiteSettings>(getGetSiteSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSiteSettingsQueryKey = () => {
+    return [
+    `/api/settings`
+    ] as const;
+    }
+
+
+export const getGetSiteSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getSiteSettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSiteSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSiteSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSiteSettings>>> = ({ signal }) => getSiteSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSiteSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSiteSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getSiteSettings>>>
+export type GetSiteSettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Public site settings (e.g. carousel pace)
+ */
+
+export function useGetSiteSettings<TData = Awaited<ReturnType<typeof getSiteSettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSiteSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSiteSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetHeaderGalleryUrl = () => {
+
+
+
+
+  return `/api/gallery/header`
+}
+
+/**
+ * @summary Header carousel images (public)
+ */
+export const getHeaderGallery = async ( options?: RequestInit): Promise<GalleryImage[]> => {
+
+  return customFetch<GalleryImage[]>(getGetHeaderGalleryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetHeaderGalleryQueryKey = () => {
+    return [
+    `/api/gallery/header`
+    ] as const;
+    }
+
+
+export const getGetHeaderGalleryQueryOptions = <TData = Awaited<ReturnType<typeof getHeaderGallery>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHeaderGallery>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHeaderGalleryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHeaderGallery>>> = ({ signal }) => getHeaderGallery({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHeaderGallery>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetHeaderGalleryQueryResult = NonNullable<Awaited<ReturnType<typeof getHeaderGallery>>>
+export type GetHeaderGalleryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Header carousel images (public)
+ */
+
+export function useGetHeaderGallery<TData = Awaited<ReturnType<typeof getHeaderGallery>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHeaderGallery>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetHeaderGalleryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetGalleryUrl = () => {
 
 
@@ -2984,5 +3144,291 @@ export const useDeleteGalleryImage = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteGalleryImageMutationOptions(options));
+    }
+
+export const getSetGalleryImageVisibilityUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/gallery/${id}/visibility`
+}
+
+/**
+ * @summary Set visibility for a single gallery image (admin)
+ */
+export const setGalleryImageVisibility = async (id: number,
+    galleryImageVisibilityInput: GalleryImageVisibilityInput, options?: RequestInit): Promise<GalleryImage> => {
+
+  return customFetch<GalleryImage>(getSetGalleryImageVisibilityUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(galleryImageVisibilityInput)
+  }
+);}
+
+
+
+
+
+export const getSetGalleryImageVisibilityMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setGalleryImageVisibility>>, TError,{id: number;data: BodyType<GalleryImageVisibilityInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setGalleryImageVisibility>>, TError,{id: number;data: BodyType<GalleryImageVisibilityInput>}, TContext> => {
+
+const mutationKey = ['setGalleryImageVisibility'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setGalleryImageVisibility>>, {id: number;data: BodyType<GalleryImageVisibilityInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setGalleryImageVisibility(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetGalleryImageVisibilityMutationResult = NonNullable<Awaited<ReturnType<typeof setGalleryImageVisibility>>>
+    export type SetGalleryImageVisibilityMutationBody = BodyType<GalleryImageVisibilityInput>
+    export type SetGalleryImageVisibilityMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Set visibility for a single gallery image (admin)
+ */
+export const useSetGalleryImageVisibility = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setGalleryImageVisibility>>, TError,{id: number;data: BodyType<GalleryImageVisibilityInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setGalleryImageVisibility>>,
+        TError,
+        {id: number;data: BodyType<GalleryImageVisibilityInput>},
+        TContext
+      > => {
+      return useMutation(getSetGalleryImageVisibilityMutationOptions(options));
+    }
+
+export const getSetGalleryImageHeaderUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/gallery/${id}/header`
+}
+
+/**
+ * @summary Set header-carousel inclusion and order for an image (admin)
+ */
+export const setGalleryImageHeader = async (id: number,
+    galleryImageHeaderInput: GalleryImageHeaderInput, options?: RequestInit): Promise<GalleryImage> => {
+
+  return customFetch<GalleryImage>(getSetGalleryImageHeaderUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(galleryImageHeaderInput)
+  }
+);}
+
+
+
+
+
+export const getSetGalleryImageHeaderMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setGalleryImageHeader>>, TError,{id: number;data: BodyType<GalleryImageHeaderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setGalleryImageHeader>>, TError,{id: number;data: BodyType<GalleryImageHeaderInput>}, TContext> => {
+
+const mutationKey = ['setGalleryImageHeader'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setGalleryImageHeader>>, {id: number;data: BodyType<GalleryImageHeaderInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setGalleryImageHeader(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetGalleryImageHeaderMutationResult = NonNullable<Awaited<ReturnType<typeof setGalleryImageHeader>>>
+    export type SetGalleryImageHeaderMutationBody = BodyType<GalleryImageHeaderInput>
+    export type SetGalleryImageHeaderMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Set header-carousel inclusion and order for an image (admin)
+ */
+export const useSetGalleryImageHeader = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setGalleryImageHeader>>, TError,{id: number;data: BodyType<GalleryImageHeaderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setGalleryImageHeader>>,
+        TError,
+        {id: number;data: BodyType<GalleryImageHeaderInput>},
+        TContext
+      > => {
+      return useMutation(getSetGalleryImageHeaderMutationOptions(options));
+    }
+
+export const getUpdateSiteSettingsUrl = () => {
+
+
+
+
+  return `/api/admin/settings`
+}
+
+/**
+ * @summary Update site settings (admin)
+ */
+export const updateSiteSettings = async (updateSiteSettingsInput: UpdateSiteSettingsInput, options?: RequestInit): Promise<SiteSettings> => {
+
+  return customFetch<SiteSettings>(getUpdateSiteSettingsUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateSiteSettingsInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateSiteSettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSiteSettings>>, TError,{data: BodyType<UpdateSiteSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSiteSettings>>, TError,{data: BodyType<UpdateSiteSettingsInput>}, TContext> => {
+
+const mutationKey = ['updateSiteSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSiteSettings>>, {data: BodyType<UpdateSiteSettingsInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateSiteSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSiteSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateSiteSettings>>>
+    export type UpdateSiteSettingsMutationBody = BodyType<UpdateSiteSettingsInput>
+    export type UpdateSiteSettingsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update site settings (admin)
+ */
+export const useUpdateSiteSettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSiteSettings>>, TError,{data: BodyType<UpdateSiteSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSiteSettings>>,
+        TError,
+        {data: BodyType<UpdateSiteSettingsInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateSiteSettingsMutationOptions(options));
+    }
+
+export const getBulkSetGalleryImageVisibilityUrl = () => {
+
+
+
+
+  return `/api/admin/gallery/bulk-visibility`
+}
+
+/**
+ * @summary Set visibility for multiple gallery images at once (admin)
+ */
+export const bulkSetGalleryImageVisibility = async (bulkGalleryImageVisibilityInput: BulkGalleryImageVisibilityInput, options?: RequestInit): Promise<BulkSetGalleryImageVisibility200> => {
+
+  return customFetch<BulkSetGalleryImageVisibility200>(getBulkSetGalleryImageVisibilityUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(bulkGalleryImageVisibilityInput)
+  }
+);}
+
+
+
+
+
+export const getBulkSetGalleryImageVisibilityMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkSetGalleryImageVisibility>>, TError,{data: BodyType<BulkGalleryImageVisibilityInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkSetGalleryImageVisibility>>, TError,{data: BodyType<BulkGalleryImageVisibilityInput>}, TContext> => {
+
+const mutationKey = ['bulkSetGalleryImageVisibility'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkSetGalleryImageVisibility>>, {data: BodyType<BulkGalleryImageVisibilityInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  bulkSetGalleryImageVisibility(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkSetGalleryImageVisibilityMutationResult = NonNullable<Awaited<ReturnType<typeof bulkSetGalleryImageVisibility>>>
+    export type BulkSetGalleryImageVisibilityMutationBody = BodyType<BulkGalleryImageVisibilityInput>
+    export type BulkSetGalleryImageVisibilityMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Set visibility for multiple gallery images at once (admin)
+ */
+export const useBulkSetGalleryImageVisibility = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkSetGalleryImageVisibility>>, TError,{data: BodyType<BulkGalleryImageVisibilityInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bulkSetGalleryImageVisibility>>,
+        TError,
+        {data: BodyType<BulkGalleryImageVisibilityInput>},
+        TContext
+      > => {
+      return useMutation(getBulkSetGalleryImageVisibilityMutationOptions(options));
     }
 

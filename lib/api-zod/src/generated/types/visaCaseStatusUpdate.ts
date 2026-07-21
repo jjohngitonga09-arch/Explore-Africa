@@ -9,4 +9,5 @@
 export interface VisaCaseStatusUpdate {
   status: string;
   adminNotes?: string;
+  paymentInfo?: string;
 }

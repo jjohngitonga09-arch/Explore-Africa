@@ -309,7 +309,17 @@ export const CreateBookingBody = zod.object({
   "tourId": zod.number(),
   "originCountryId": zod.number(),
   "numberOfPeople": zod.number(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "passportNumber": zod.string().optional(),
+  "dateOfBirth": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "address": zod.string().optional(),
+  "gender": zod.string().optional(),
+  "occupation": zod.string().optional(),
+  "purposeOfTravel": zod.string().optional(),
+  "maritalStatus": zod.string().optional(),
+  "emergencyContact": zod.string().optional(),
+  "emergencyPhone": zod.string().optional()
 })
 
 export const CreateBookingResponse = zod.object({
@@ -788,7 +798,8 @@ export const UpdateVisaCaseStatusParams = zod.object({
 
 export const UpdateVisaCaseStatusBody = zod.object({
   "status": zod.string(),
-  "adminNotes": zod.string().optional()
+  "adminNotes": zod.string().optional(),
+  "paymentInfo": zod.string().optional()
 })
 
 export const UpdateVisaCaseStatusResponse = zod.object({
@@ -888,6 +899,40 @@ export const DeleteCountryResponse = zod.void()
 
 
 /**
+ * @summary Public site settings (e.g. carousel pace)
+ */
+export const GetSiteSettingsResponse = zod.object({
+  "id": zod.number(),
+  "headerCarouselIntervalMs": zod.number(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Header carousel images (public)
+ */
+export const GetHeaderGalleryResponseItem = zod.object({
+  "id": zod.number(),
+  "imageUrl": zod.string(),
+  "caption": zod.string().nullish(),
+  "countryId": zod.number().nullish(),
+  "country": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "code": zod.string().nullish(),
+  "type": zod.string(),
+  "createdAt": zod.string()
+}),zod.null()]).optional(),
+  "sortOrder": zod.number(),
+  "isVisible": zod.boolean(),
+  "isHeaderImage": zod.boolean(),
+  "headerOrder": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+export const GetHeaderGalleryResponse = zod.array(GetHeaderGalleryResponseItem)
+
+
+/**
  * @summary Public gallery images
  */
 export const GetGalleryResponseItem = zod.object({
@@ -903,6 +948,9 @@ export const GetGalleryResponseItem = zod.object({
   "createdAt": zod.string()
 }),zod.null()]).optional(),
   "sortOrder": zod.number(),
+  "isVisible": zod.boolean(),
+  "isHeaderImage": zod.boolean(),
+  "headerOrder": zod.number().nullish(),
   "createdAt": zod.string()
 })
 export const GetGalleryResponse = zod.array(GetGalleryResponseItem)
@@ -924,6 +972,9 @@ export const GetAdminGalleryResponseItem = zod.object({
   "createdAt": zod.string()
 }),zod.null()]).optional(),
   "sortOrder": zod.number(),
+  "isVisible": zod.boolean(),
+  "isHeaderImage": zod.boolean(),
+  "headerOrder": zod.number().nullish(),
   "createdAt": zod.string()
 })
 export const GetAdminGalleryResponse = zod.array(GetAdminGalleryResponseItem)
@@ -952,6 +1003,9 @@ export const AddGalleryImageResponse = zod.object({
   "createdAt": zod.string()
 }),zod.null()]).optional(),
   "sortOrder": zod.number(),
+  "isVisible": zod.boolean(),
+  "isHeaderImage": zod.boolean(),
+  "headerOrder": zod.number().nullish(),
   "createdAt": zod.string()
 })
 
@@ -964,5 +1018,99 @@ export const DeleteGalleryImageParams = zod.object({
 })
 
 export const DeleteGalleryImageResponse = zod.void()
+
+
+/**
+ * @summary Set visibility for a single gallery image (admin)
+ */
+export const SetGalleryImageVisibilityParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SetGalleryImageVisibilityBody = zod.object({
+  "isVisible": zod.boolean()
+})
+
+export const SetGalleryImageVisibilityResponse = zod.object({
+  "id": zod.number(),
+  "imageUrl": zod.string(),
+  "caption": zod.string().nullish(),
+  "countryId": zod.number().nullish(),
+  "country": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "code": zod.string().nullish(),
+  "type": zod.string(),
+  "createdAt": zod.string()
+}),zod.null()]).optional(),
+  "sortOrder": zod.number(),
+  "isVisible": zod.boolean(),
+  "isHeaderImage": zod.boolean(),
+  "headerOrder": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Set header-carousel inclusion and order for an image (admin)
+ */
+export const SetGalleryImageHeaderParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SetGalleryImageHeaderBody = zod.object({
+  "isHeaderImage": zod.boolean(),
+  "headerOrder": zod.number().nullish()
+})
+
+export const SetGalleryImageHeaderResponse = zod.object({
+  "id": zod.number(),
+  "imageUrl": zod.string(),
+  "caption": zod.string().nullish(),
+  "countryId": zod.number().nullish(),
+  "country": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "code": zod.string().nullish(),
+  "type": zod.string(),
+  "createdAt": zod.string()
+}),zod.null()]).optional(),
+  "sortOrder": zod.number(),
+  "isVisible": zod.boolean(),
+  "isHeaderImage": zod.boolean(),
+  "headerOrder": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update site settings (admin)
+ */
+export const updateSiteSettingsBodyHeaderCarouselIntervalMsMin = 500;
+
+
+
+export const UpdateSiteSettingsBody = zod.object({
+  "headerCarouselIntervalMs": zod.number().min(updateSiteSettingsBodyHeaderCarouselIntervalMsMin)
+})
+
+export const UpdateSiteSettingsResponse = zod.object({
+  "id": zod.number(),
+  "headerCarouselIntervalMs": zod.number(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Set visibility for multiple gallery images at once (admin)
+ */
+export const BulkSetGalleryImageVisibilityBody = zod.object({
+  "ids": zod.array(zod.number()).optional().describe('Image ids to update. Omit to apply to all images.'),
+  "isVisible": zod.boolean()
+})
+
+export const BulkSetGalleryImageVisibilityResponse = zod.object({
+  "updated": zod.number()
+})
 
 

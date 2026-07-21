@@ -1,4 +1,4 @@
-﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
@@ -26,6 +26,7 @@ import AdminTours from '@/pages/admin/tours';
 import AdminCountries from '@/pages/admin/countries';
 import AdminGallery from '@/pages/admin/gallery';
 import AdminUrls from '@/pages/admin/urls';
+import AdminSettings from '@/pages/admin/settings';
 import AdminVisaServices from '@/pages/admin/visa-services';
 import AdminBookings from '@/pages/admin/bookings';
 import AdminVisaCases from '@/pages/admin/visa-cases';
@@ -86,6 +87,7 @@ function AppRouter() {
         <ProtectedRoute path="/admin/countries" component={AdminCountries} requireAdmin />
         <ProtectedRoute path="/admin/gallery" component={AdminGallery} requireAdmin />
         <ProtectedRoute path="/admin/urls" component={AdminUrls} requireAdmin />
+        <ProtectedRoute path="/admin/settings" component={AdminSettings} requireAdmin />
         <ProtectedRoute path="/admin/visa-services" component={AdminVisaServices} requireAdmin />
         <ProtectedRoute path="/admin/bookings" component={AdminBookings} requireAdmin />
         <ProtectedRoute path="/admin/visa-cases" component={AdminVisaCases} requireAdmin />

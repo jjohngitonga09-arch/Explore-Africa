@@ -58,7 +58,7 @@ router.post("/sponsorships", requireAuth, async (req, res): Promise<void> => {
 
 // POST /sponsorships/:id/pay
 router.post("/sponsorships/:id/pay", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   const [existing] = await db
     .select()
     .from(sponsorshipsTable)
@@ -68,7 +68,7 @@ router.post("/sponsorships/:id/pay", requireAuth, async (req, res): Promise<void
     return;
   }
   if (existing.status !== "accepted") {
-    res.status(400).json({ error: "Cannot pay — sponsorship not yet accepted" });
+    res.status(400).json({ error: "Cannot pay â€” sponsorship not yet accepted" });
     return;
   }
   const [updated] = await db
@@ -87,7 +87,7 @@ router.get("/admin/sponsorships", requireAuth, requireAdmin, async (_req, res): 
 
 // PATCH /admin/sponsorships/:id
 router.patch("/admin/sponsorships/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   const { status, adminNotes, airportInstructions, sponsorshipFee } = req.body;
   if (!status) {
     res.status(400).json({ error: "status is required" });
@@ -122,7 +122,7 @@ router.patch("/admin/sponsorships/:id", requireAuth, requireAdmin, async (req, r
         updated.airportInstructions ?? undefined,
       );
     } catch (err) {
-      // Non-fatal — log but don't fail the response
+      // Non-fatal â€” log but don't fail the response
       console.error("Failed to send sponsorship acceptance email:", err);
     }
   }

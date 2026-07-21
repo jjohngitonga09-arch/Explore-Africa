@@ -16,5 +16,9 @@ export interface GalleryImage {
   countryId?: number | null;
   country?: Country | null;
   sortOrder: number;
+  isVisible: boolean;
+  isHeaderImage: boolean;
+  /** @nullable */
+  headerOrder?: number | null;
   createdAt: string;
 }

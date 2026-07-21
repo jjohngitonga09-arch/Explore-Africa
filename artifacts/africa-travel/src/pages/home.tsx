@@ -3,6 +3,7 @@ import { ArrowRight, MapPin, Calendar, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useListTours, useGetGallery, useListVisaServices } from "@workspace/api-client-react";
+import { HeaderCarousel } from "@/components/HeaderCarousel";
 
 export default function Home() {
   const { data: tours, isLoading: toursLoading } = useListTours();
@@ -17,11 +18,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[85vh] w-full flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-black/40 z-10" />
-        <img 
-          src="/hero-savanna.jpg" 
-          alt="African Savanna" 
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
+        <HeaderCarousel />
         <div className="relative z-20 text-center text-white px-4 max-w-4xl mx-auto flex flex-col items-center">
           <span className="uppercase tracking-[0.3em] text-sm font-medium mb-4 text-white/90">Curated African Experiences</span>
           <h1 className="text-5xl md:text-7xl font-serif font-medium mb-6 leading-tight">
@@ -107,7 +104,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1 relative">
               <div className="aspect-square max-w-md mx-auto relative z-10">
-                <img src="/visa-service.jpg" alt="Visa Services" className="w-full h-full object-cover shadow-2xl" />
+                <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80" alt="Visa Services" className="w-full h-full object-cover shadow-2xl" />
               </div>
               <div className="absolute top-1/2 -right-8 w-48 h-48 bg-primary/10 rounded-full -z-0 blur-3xl hidden lg:block" />
             </div>
@@ -140,7 +137,7 @@ export default function Home() {
       {/* Visual Break / Quote */}
       <section className="relative py-32 bg-black text-center px-4 overflow-hidden">
         <div className="absolute inset-0 opacity-40">
-          <img src="/serengeti-sunset.jpg" alt="Sunset" className="w-full h-full object-cover" />
+          <img src="https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=1600&q=80" alt="Sunset" className="w-full h-full object-cover" />
         </div>
         <div className="relative z-10 max-w-3xl mx-auto">
           <p className="font-serif text-3xl md:text-4xl lg:text-5xl text-white leading-tight">
