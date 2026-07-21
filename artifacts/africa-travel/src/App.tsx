@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { Layout } from '@/components/layout';
 import { AdminLayout } from '@/components/admin-layout';
@@ -82,6 +83,13 @@ function AppRouter() {
         <ProtectedRoute path="/book/:tourId" component={BookTour} />
         <ProtectedRoute path="/apply-visa/:serviceId" component={ApplyVisa} />
 
+        <Route path="/admin">
+          {() => {
+            const [, setLocation] = useLocation();
+            useEffect(() => setLocation("/admin/dashboard"), []);
+            return null;
+          }}
+        </Route>
         <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} requireAdmin />
         <ProtectedRoute path="/admin/tours" component={AdminTours} requireAdmin />
         <ProtectedRoute path="/admin/countries" component={AdminCountries} requireAdmin />
